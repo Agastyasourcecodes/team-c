@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
 const style = `
@@ -281,6 +282,7 @@ const style = `
   .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 `;
 
+// Keep hardcoded data until backend is ready
 const petitions = [
   {
     id: 1, title: "Improve Public Transportation Infrastructure",
@@ -334,14 +336,56 @@ function statusTag(status) {
 }
 
 export default function CivixDashboard() {
+  const navigate = useNavigate();
   const [page, setPage] = useState("Home");
   const [pollTab, setPollTab] = useState("Active");
   const [petitionFilter, setPetitionFilter] = useState("All Petitions");
   const [toast, setToast] = useState(null);
 
+  // States to hold actual database data later
+  const [backendPetitions, setBackendPetitions] = useState([]);
+  const [backendPolls, setBackendPolls] = useState([]);
+  const [user, setUser] = useState(null);
+
+  // Check auth and fetch data when component mounts
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const storedUser = localStorage.getItem('user');
+
+    // If no token, redirect to login page
+    if (!token) {
+      navigate('/');
+      return;
+    }
+
+    if (storedUser) setUser(JSON.parse(storedUser));
+
+    const fetchDashboardData = async () => {
+      try {
+        // Example of how you will fetch data later when the backend has these routes
+        /* const res = await fetch('http://localhost:5000/api/petitions', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const data = await res.json();
+        setBackendPetitions(data);
+        */
+      } catch (err) {
+        console.error("Failed to fetch dashboard data:", err);
+      }
+    };
+
+    fetchDashboardData();
+  }, [navigate]);
+
   const showToast = (msg) => {
     setToast(msg);
     setTimeout(() => setToast(null), 2500);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/');
   };
 
   const navItems = ["Home", "Petitions", "Polls", "Reports"];
@@ -380,7 +424,10 @@ export default function CivixDashboard() {
             <button className="notif-btn" onClick={() => showToast("📣 2 new notifications")}>
               🔔<span className="notif-dot" />
             </button>
-            <button className="avatar-btn" onClick={() => showToast("👤 Profile settings")}>C</button>
+            {/* Added Logout functionality here */}
+            <button className="avatar-btn" onClick={handleLogout} title="Logout">
+              {user && user.name ? user.name.charAt(0).toUpperCase() : 'C'}
+            </button>
           </div>
         </nav>
 
@@ -393,7 +440,7 @@ export default function CivixDashboard() {
               {/* Left */}
               <div className="left-col">
                 <div className="card">
-                  <h2>Hello, Citizen</h2>
+                  <h2>Hello, {user && user.name ? user.name : "Citizen"}</h2>
                   <p>Here's what's happening in your locality</p>
                   <div className="divider" />
                   <div className="location-row"><span>📍</span>Downtown District</div>

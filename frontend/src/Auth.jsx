@@ -26,31 +26,56 @@ export default function Auth() {
     setError('');
   };
 
-  // 🔐 LOGIN
-  const handleLogin = (e) => {
+  // 🔐 LOGIN - Connected to Backend
+  const handleLogin = async (e) => {
     e.preventDefault();
     setError('');
+    
+    if (!formData.email || !formData.password) {
+      setError('Please enter email and password');
+      return;
+    }
+
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      // Simple validation
-      if (!formData.email || !formData.password) {
-        setError('Please enter email and password');
-        return;
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: formData.email,
+          password: formData.password
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to login');
       }
+
+      // Save token to localStorage for future authenticated requests
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+
       // Route based on role
-      if (selectedRole === 'government_official') {
+      if (data.user.role === 'government_official') {
         navigate('/official-dashboard');
       } else {
         navigate('/dashboard');
       }
-    }, 800);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // 📝 REGISTER
-  const handleRegister = (e) => {
+  // 📝 REGISTER - Connected to Backend
+  const handleRegister = async (e) => {
     e.preventDefault();
     setError('');
+    
     if (!selectedRole) {
       setError('Please select a role');
       return;
@@ -63,16 +88,36 @@ export default function Auth() {
       setError('Password must be at least 6 characters');
       return;
     }
+
     setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      // Route based on role
-      if (selectedRole === 'government_official') {
-        navigate('/official-dashboard');
-      } else {
-        navigate('/dashboard');
+
+    try {
+      const response = await fetch('http://localhost:5000/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.fullName, 
+          email: formData.email,
+          password: formData.password,
+          role: selectedRole,
+          location: "Not Specified"
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || 'Failed to register');
       }
-    }, 800);
+
+      alert("Registration successful! Please sign in.");
+      toggleMode(); // Switch to login view
+
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const toggleMode = () => {
