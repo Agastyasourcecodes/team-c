@@ -73,8 +73,27 @@ exports.signPetition = async (req, res) => {
 };
 exports.getPetitions = async (req, res) => {
   try {
-    const petitions = await Petition.find();
+    const { location, category, status } = req.query;
+
+    let filter = {};
+    
+    if (location) {
+      filter.location = { $regex: location, $options: "i" };
+    }
+
+    if (category) {
+      filter.category = { $regex: category, $options: "i" };
+    }
+
+    if (status) {
+      filter.status = status;
+    }
+
+    const petitions = await Petition.find(filter)
+      .sort({ createdAt: -1 });
+
     res.json(petitions);
+
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
