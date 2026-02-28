@@ -4,6 +4,7 @@ import Auth from './Auth';
 import Aurora from './Aurora';
 import Dashboard from './Dashboard';
 import Landing from './Landing';
+import OfficialDashboard from './pages/OfficialDashboard';
 
 function App() {
   const location = useLocation();
@@ -24,7 +25,7 @@ function App() {
           <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Auth />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/official-dashboard" element={<Dashboard />} />
+          <Route path="/official-dashboard" element={<OfficialDashboard />} />
         </Routes>
       </div>
 
