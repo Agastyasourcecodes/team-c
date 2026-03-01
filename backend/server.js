@@ -15,13 +15,13 @@ app.use((req, res, next) => {
 
 const petitionRoutes = require("./src/Routes/petitionRoutes");
 const authRoutes = require("./src/Routes/authRoutes");
+const pollRoutes = require("./src/Routes/pollRoutes");
 
 app.use("/api/petitions", petitionRoutes);
 app.use("/api/auth", authRoutes);
+app.use("/api/polls", pollRoutes);
 
 app.get("/", (req, res) => res.send("API running"));
-
-
 
 app.use((err, req, res, next) => {
   console.error("JSON ERROR:", err.message);
