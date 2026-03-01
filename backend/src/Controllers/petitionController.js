@@ -1,17 +1,17 @@
 const Petition = require("../Models/Petition");
 const Signature = require("../Models/Signature");
+
 exports.createPetition = async (req, res) => {
   try {
     const { title, description, category, location, signatureGoal } = req.body;
 
-    
     if (
-  !title ||
-  !description ||
-  !category ||
-  !location ||
-  signatureGoal === undefined
-){
+      !title ||
+      !description ||
+      !category ||
+      !location ||
+      signatureGoal === undefined
+    ) {
       return res.status(400).json({ message: "All fields are required" });
     }
 
@@ -33,6 +33,7 @@ exports.createPetition = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 exports.signPetition = async (req, res) => {
   try {
     const petition = await Petition.findById(req.params.id);
@@ -48,10 +49,8 @@ exports.signPetition = async (req, res) => {
       user: req.user.id,
     });
 
-    
     petition.signatureCount += 1;
 
-    
     if (petition.signatureCount >= petition.signatureGoal) {
       petition.status = "active";
     }
@@ -71,6 +70,7 @@ exports.signPetition = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
 exports.getPetitions = async (req, res) => {
   try {
     const { location, category, status } = req.query;
@@ -94,6 +94,31 @@ exports.getPetitions = async (req, res) => {
 
     res.json(petitions);
 
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// NEW: Delete Petition logic
+exports.deletePetition = async (req, res) => {
+  try {
+    const petition = await Petition.findById(req.params.id);
+
+    if (!petition) {
+      return res.status(404).json({ message: "Petition not found" });
+    }
+
+    // Ensure the user deleting the petition is the one who created it
+    if (petition.creator.toString() !== req.user.id) {
+      return res.status(403).json({ message: "User not authorized to delete this petition" });
+    }
+
+    await petition.deleteOne();
+
+    // Clean up signatures associated with the deleted petition
+    await Signature.deleteMany({ petition: req.params.id });
+
+    res.json({ message: "Petition removed successfully" });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

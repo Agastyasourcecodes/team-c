@@ -128,6 +128,14 @@ const style = `
     cursor: pointer; transition: background 0.15s;
   }
   .view-btn-card:hover { background: #1a2760; }
+  
+  /* STYLES FOR DELETE BUTTON */
+  .delete-btn {
+    background: #e53e3e; color: #fff; border: none;
+    padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s; margin-left: 8px;
+  }
+  .delete-btn:hover { background: #c53030; }
 
   /* Right column */
   .engagement-card {
@@ -293,7 +301,6 @@ const polls = [
   { id: 4, title: "Bike lane expansion on major thoroughfares", location: "Citywide", votes: "987", ends: "January 31, 2026", status: "Closed", voted: true },
 ];
 
-// Re-added the hardcoded chart data for Reports tab
 const petitionPieData = [
   { name: "Active", value: 45, color: "#2a9d8f" },
   { name: "Under Review", value: 28, color: "#F98513" },
@@ -315,8 +322,8 @@ function statusTag(status) {
 export default function CivixDashboard() {
   const navigate = useNavigate();
   
-  // 👉 PETITIONS ARE NOW ONLY COMING FROM YOUR BACKEND HERE:
-  const { petitions, fetchPetitions, signExistingPetition } = usePetitions();
+  // 👉 ADDED deleteExistingPetition HERE
+  const { petitions, fetchPetitions, signExistingPetition, deleteExistingPetition } = usePetitions();
   
   const [page, setPage] = useState("Home");
   const [pollTab, setPollTab] = useState("Active");
@@ -359,6 +366,18 @@ export default function CivixDashboard() {
       showToast("✅ Successfully signed the petition!");
     } else {
       showToast("❌ " + (result.error || "Failed to sign petition"));
+    }
+  };
+
+  // 👉 NEW DELETE HANDLER
+  const handleDeletePetition = async (id) => {
+    if (window.confirm("Are you sure you want to delete this petition?")) {
+      const result = await deleteExistingPetition(id);
+      if (result.success) {
+        showToast("🗑️ Petition deleted successfully!");
+      } else {
+        showToast("❌ " + (result.error || "Failed to delete petition"));
+      }
     }
   };
 
@@ -417,7 +436,6 @@ export default function CivixDashboard() {
                   <div className="location-sub">Showing petitions and polls relevant to your area</div>
                 </div>
                 
-                {/* RESTORED PARTICIPATION SUMMARY */}
                 <div className="card participation-summary">
                   <h2>Participation Summary</h2>
                   <div className="stat-row">
@@ -426,10 +444,8 @@ export default function CivixDashboard() {
                   </div>
                   <div className="stat-row">
                     <div className="stat-bar teal" />
-                    {/* Hardcoded 12 for UI visualization, you can connect this to backend later */}
                     <div><div className="stat-num">12</div><div className="stat-label">Petitions Signed</div></div>
                   </div>
-                  {/* Restored Polls Voted row */}
                   <div className="stat-row">
                     <div className="stat-bar indigo" />
                     <div><div className="stat-num">8</div><div className="stat-label">Polls Voted</div></div>
@@ -457,7 +473,13 @@ export default function CivixDashboard() {
                       <span>📄 {p.signatureCount} / {p.signatureGoal} signatures</span>
                       <span>📍 {p.location}</span>
                     </div>
-                    <button className="view-btn-card" onClick={() => handleSignPetition(p._id)}>Sign Petition</button>
+                    <div>
+                      <button className="view-btn-card" onClick={() => handleSignPetition(p._id)}>Sign Petition</button>
+                      {/* 👉 ONLY SHOW DELETE IF CREATOR */}
+                      {p.creator === user?._id && (
+                        <button className="delete-btn" onClick={() => handleDeletePetition(p._id)}>Delete</button>
+                      )}
+                    </div>
                   </div>
                 ))}
                 {petitions.length === 0 && <p style={{color: '#888'}}>No petitions available yet. Create one!</p>}
@@ -517,8 +539,12 @@ export default function CivixDashboard() {
                         <span>📄 {p.signatureCount} / {p.signatureGoal} signatures</span>
                       </div>
                     </div>
-                    <div style={{ flexShrink: 0 }}>
+                    <div style={{ flexShrink: 0, display: 'flex', gap: '8px' }}>
                       <button className="view-btn-card" onClick={() => handleSignPetition(p._id)}>Sign Petition</button>
+                      {/* 👉 ONLY SHOW DELETE IF CREATOR */}
+                      {p.creator === user?._id && (
+                        <button className="delete-btn" onClick={() => handleDeletePetition(p._id)}>Delete</button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -567,7 +593,7 @@ export default function CivixDashboard() {
             </div>
           )}
 
-          {/* ── FULLY RESTORED REPORTS PAGE ── */}
+          {/* ── REPORTS PAGE ── */}
           {page === "Reports" && (
             <div className="reports-page">
               <div className="reports-header">
@@ -638,7 +664,6 @@ export default function CivixDashboard() {
         </div>
       </div>
       
-      {/* ── MODAL MOUNTED HERE ── */}
       {showCreateModal && (
         <CreatePetition onClose={() => setShowCreateModal(false)} />
       )}

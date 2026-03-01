@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import * as api from './api'; // Directly imports from src/api.js
+import * as api from './api'; 
 
 const PetitionContext = createContext();
 
@@ -36,7 +36,6 @@ export const PetitionProvider = ({ children }) => {
     setLoading(true);
     try {
       const { data } = await api.createPetition(petitionData);
-      // Backend returns { message, petition }, so we extract just the 'petition' object to update state
       setPetitions([data.petition, ...petitions]);
       setError(null);
       return { success: true, data: data.petition };
@@ -65,6 +64,18 @@ export const PetitionProvider = ({ children }) => {
     }
   };
 
+  // NEW: Delete existing petition and update state
+  const deleteExistingPetition = async (id) => {
+    try {
+      await api.deletePetition(id);
+      setPetitions(petitions.filter(p => p._id !== id));
+      return { success: true };
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error deleting petition');
+      return { success: false, error: err.response?.data?.message };
+    }
+  };
+
   return (
     <PetitionContext.Provider value={{
       petitions,
@@ -74,7 +85,8 @@ export const PetitionProvider = ({ children }) => {
       setUser,
       fetchPetitions,
       createNewPetition,
-      signExistingPetition
+      signExistingPetition,
+      deleteExistingPetition // Exported delete function
     }}>
       {children}
     </PetitionContext.Provider>
