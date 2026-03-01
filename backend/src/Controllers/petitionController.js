@@ -98,3 +98,27 @@ exports.getPetitions = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+exports.deletePetition = async (req, res) => {
+  try {
+    const petition = await Petition.findById(req.params.id);
+
+    if (!petition) {
+      return res.status(404).json({ message: "Petition not found" });
+    }
+
+    const isOwner = petition.creator.toString() === req.user.id;
+    const isOfficial = req.user.role === "government_official";
+
+    if (!isOwner && !isOfficial) {
+      return res.status(403).json({ message: "Not authorized to delete this petition" });
+    }
+
+    await Signature.deleteMany({ petition: petition._id });
+    await Petition.findByIdAndDelete(petition._id);
+
+    res.json({ message: "Petition deleted successfully", petitionId: petition._id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

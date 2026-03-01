@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
@@ -282,57 +282,22 @@ const style = `
   .main-content::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 `;
 
-// Keep hardcoded data until backend is ready
-const petitions = [
-  {
-    id: 1, title: "Improve Public Transportation Infrastructure",
-    desc: "Requesting expansion of metro lines to underserved neighborhoods and increased bus frequency during peak hours to accommodate growing commuter needs.",
-    category: "Transportation", location: "Downtown District", status: "Active", signatures: "1,247",
-  },
-  {
-    id: 2, title: "Establish Community Recreation Centers",
-    desc: "Proposal to build modern recreation facilities with sports courts, libraries, and community meeting spaces to promote healthy living and social interaction.",
-    category: "Community", location: "North Ward", status: "Under Review", signatures: "892",
-  },
-  {
-    id: 3, title: "Install Solar-Powered Street Lighting",
-    desc: "Replace aging streetlights with energy-efficient solar panels to reduce electricity costs and improve road safety at night.",
-    category: "Environment", location: "East District", status: "Active", signatures: "2,103",
-  },
-  {
-    id: 4, title: "Affordable Housing Development Plan",
-    desc: "Proposal to allocate 15 acres of city-owned land for affordable housing units for low-income families.",
-    category: "Housing", location: "South Ward", status: "Closed", signatures: "4,521",
-  },
-  {
-    id: 5, title: "Expand City Composting Program",
-    desc: "Extend the composting pickup program from downtown to all residential neighborhoods to reduce landfill waste.",
-    category: "Environment", location: "Citywide", status: "Active", signatures: "671",
-  },
-];
-
-const polls = [
-  { id: 1, title: "Should the city allocate additional funds for parks maintenance?", location: "Citywide", votes: "3,421", ends: "February 20, 2026", status: "Active", voted: false },
-  { id: 2, title: "Preferred approach for downtown parking management", location: "Downtown District", votes: "1,876", ends: "February 18, 2026", status: "Active", voted: true },
-  { id: 3, title: "New zoning policy for mixed-use developments", location: "North Ward", votes: "2,210", ends: "February 25, 2026", status: "Active", voted: false },
-  { id: 4, title: "Bike lane expansion on major thoroughfares", location: "Citywide", votes: "987", ends: "January 31, 2026", status: "Closed", voted: true },
-];
-
-const petitionPieData = [
-  { name: "Active", value: 45, color: "#2a9d8f" },
-  { name: "Under Review", value: 28, color: "#F98513" },
-  { name: "Approved", value: 17, color: "#223382" },
-  { name: "Closed", value: 10, color: "#9ca3af" },
-];
+const polls = [];
 
 const pollPieData = [
   { name: "Voted", value: 70, color: "#223382" },
   { name: "Not Voted", value: 30, color: "#2a9d8f" },
 ];
 
+function formatStatus(status) {
+  if (status === "under_review") return "Under Review";
+  return status ? status.charAt(0).toUpperCase() + status.slice(1) : "Unknown";
+}
+
 function statusTag(status) {
+  const formatted = formatStatus(status);
   const map = { Active: "tag-active", "Under Review": "tag-review", Closed: "tag-closed" };
-  return <span className={`tag ${map[status] || "tag-active"}`}>{status}</span>;
+  return <span className={`tag ${map[formatted] || "tag-active"}`}>{formatted}</span>;
 }
 
 export default function CivixDashboard() {
@@ -342,17 +307,31 @@ export default function CivixDashboard() {
   const [petitionFilter, setPetitionFilter] = useState("All Petitions");
   const [toast, setToast] = useState(null);
 
-  // States to hold actual database data later
   const [backendPetitions, setBackendPetitions] = useState([]);
-  const [backendPolls, setBackendPolls] = useState([]);
+  const [backendPolls] = useState([]);
   const [user, setUser] = useState(null);
+  const API_BASE = "http://localhost:5000/api";
+
+  const fetchDashboardData = async (token) => {
+    try {
+      const res = await fetch(`${API_BASE}/petitions`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.message || "Failed to load petitions");
+      setBackendPetitions(Array.isArray(data) ? data : []);
+    } catch (err) {
+      console.error("Failed to fetch dashboard data:", err);
+      showToast("Unable to load petitions from backend");
+    }
+  };
 
   // Check auth and fetch data when component mounts
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     const token = localStorage.getItem('token');
     const storedUser = localStorage.getItem('user');
 
-    // If no token, redirect to login page
     if (!token) {
       navigate('/');
       return;
@@ -360,21 +339,7 @@ export default function CivixDashboard() {
 
     if (storedUser) setUser(JSON.parse(storedUser));
 
-    const fetchDashboardData = async () => {
-      try {
-        // Example of how you will fetch data later when the backend has these routes
-        /* const res = await fetch('http://localhost:5000/api/petitions', {
-          headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const data = await res.json();
-        setBackendPetitions(data);
-        */
-      } catch (err) {
-        console.error("Failed to fetch dashboard data:", err);
-      }
-    };
-
-    fetchDashboardData();
+    fetchDashboardData(token);
   }, [navigate]);
 
   const showToast = (msg) => {
@@ -388,14 +353,96 @@ export default function CivixDashboard() {
     navigate('/');
   };
 
+  const handleCreatePetition = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      showToast("Please log in to create a petition");
+      return;
+    }
+
+    const title = window.prompt("Petition title:");
+    if (!title) return;
+    const description = window.prompt("Petition description (minimum 20 characters):");
+    if (!description || description.length < 20) {
+      showToast("Description must be at least 20 characters");
+      return;
+    }
+
+    const location = user?.location || "Not Specified";
+
+    try {
+      const response = await fetch(`${API_BASE}/petitions`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          category: "Other",
+          location,
+          signatureGoal: 100,
+        }),
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to create petition");
+
+      const createdPetition = data.petition || data;
+      setBackendPetitions((prev) => [createdPetition, ...prev]);
+      showToast("Petition created successfully");
+    } catch (error) {
+      showToast(error.message || "Failed to create petition");
+    }
+  };
+
+  const handleDeletePetition = async (id) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      showToast("Please log in to delete petitions");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE}/petitions/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Failed to delete petition");
+
+      setBackendPetitions((prev) => prev.filter((petition) => petition._id !== id));
+      showToast("Petition deleted successfully");
+    } catch (error) {
+      showToast(error.message || "Failed to delete petition");
+    }
+  };
+
   const navItems = ["Home", "Petitions", "Polls", "Reports"];
 
-  const filteredPetitions = petitions.filter(p => {
+  const filteredPetitions = backendPetitions.filter(p => {
     if (petitionFilter === "All Petitions") return true;
-    if (petitionFilter === "My Petitions") return p.id <= 2;
-    if (petitionFilter === "Signed by Me") return p.id % 2 === 0;
+    if (petitionFilter === "My Petitions") return p.creator === user?._id;
+    if (petitionFilter === "Signed by Me") return false;
     return true;
   });
+
+  const petitionPieData = useMemo(() => {
+    const total = backendPetitions.length || 1;
+    const counts = { active: 0, under_review: 0, closed: 0 };
+
+    backendPetitions.forEach((petition) => {
+      if (counts[petition.status] !== undefined) counts[petition.status] += 1;
+    });
+
+    return [
+      { name: "Active", value: Math.round((counts.active / total) * 100), color: "#2a9d8f" },
+      { name: "Under Review", value: Math.round((counts.under_review / total) * 100), color: "#F98513" },
+      { name: "Closed", value: Math.round((counts.closed / total) * 100), color: "#9ca3af" },
+    ];
+  }, [backendPetitions]);
 
   const filteredPolls = polls.filter(p => {
     if (pollTab === "Active") return p.status === "Active";
@@ -443,22 +490,22 @@ export default function CivixDashboard() {
                   <h2>Hello, {user && user.name ? user.name : "Citizen"}</h2>
                   <p>Here's what's happening in your locality</p>
                   <div className="divider" />
-                  <div className="location-row"><span>📍</span>Downtown District</div>
+                  <div className="location-row"><span>📍</span>{user?.location || "Not Specified"}</div>
                   <div className="location-sub">Showing petitions and polls relevant to your area</div>
                 </div>
                 <div className="card participation-summary">
                   <h2>Participation Summary</h2>
                   <div className="stat-row">
                     <div className="stat-bar" />
-                    <div><div className="stat-num">3</div><div className="stat-label">Petitions Created</div></div>
+                    <div><div className="stat-num">{backendPetitions.filter((p) => p.creator === user?._id).length}</div><div className="stat-label">Petitions Created</div></div>
                   </div>
                   <div className="stat-row">
                     <div className="stat-bar teal" />
-                    <div><div className="stat-num">12</div><div className="stat-label">Petitions Signed</div></div>
+                    <div><div className="stat-num">0</div><div className="stat-label">Petitions Signed</div></div>
                   </div>
                   <div className="stat-row">
                     <div className="stat-bar indigo" />
-                    <div><div className="stat-num">8</div><div className="stat-label">Polls Voted</div></div>
+                    <div><div className="stat-num">{backendPolls.filter((p) => p.voted).length}</div><div className="stat-label">Polls Voted</div></div>
                   </div>
                 </div>
               </div>
@@ -472,19 +519,22 @@ export default function CivixDashboard() {
                   <button className="view-all-btn" onClick={() => setPage("Petitions")}>View All Petitions</button>
                 </div>
 
-                {petitions.slice(0, 3).map(p => (
-                  <div className="petition-card-home" key={p.id}>
+                {backendPetitions.slice(0, 3).map(p => (
+                  <div className="petition-card-home" key={p._id}>
                     <h3>{p.title}</h3>
                     <div className="tags">
                       <span className="tag tag-cat">{p.category}</span>
                       {statusTag(p.status)}
                     </div>
-                    <p>{p.desc}</p>
+                    <p>{p.description}</p>
                     <div className="petition-meta">
-                      <span>📄 {p.signatures} signatures</span>
+                      <span>📄 {p.signatureCount} signatures</span>
                       <span>📍 {p.location}</span>
                     </div>
                     <button className="view-btn-card" onClick={() => showToast(`📋 Opening: ${p.title}`)}>View Details</button>
+                      {(p.creator === user?._id || user?.role === "government_official") && (
+                        <button className="results-btn" style={{ marginTop: 10 }} onClick={() => handleDeletePetition(p._id)}>Delete</button>
+                      )}
                   </div>
                 ))}
               </div>
@@ -504,8 +554,8 @@ export default function CivixDashboard() {
                     <h3>Recent Polls</h3>
                     <button className="view-all-sm" onClick={() => setPage("Polls")}>View All</button>
                   </div>
-                  {polls.slice(0, 3).map(p => (
-                    <div className="poll-mini" key={p.id}>
+                  {backendPolls.slice(0, 3).map(p => (
+                    <div className="poll-mini" key={p._id}>
                       <h4>{p.title}</h4>
                       <div className="poll-mini-meta">
                         <span>📍 {p.location}</span>
@@ -528,31 +578,34 @@ export default function CivixDashboard() {
                 ))}
                 <div className="filter-divider" />
                 <div className="filter-label">Location</div>
-                <select className="filter-select"><option>All Locations</option><option>Downtown District</option><option>North Ward</option><option>East District</option></select>
+                <select className="filter-select"><option>All Locations</option>{[...new Set(backendPetitions.map((p) => p.location))].map((location) => (<option key={location}>{location}</option>))}</select>
                 <div className="filter-label">Category</div>
-                <select className="filter-select"><option>All Categories</option><option>Transportation</option><option>Community</option><option>Environment</option><option>Housing</option></select>
+                <select className="filter-select"><option>All Categories</option>{[...new Set(backendPetitions.map((p) => p.category))].map((category) => (<option key={category}>{category}</option>))}</select>
                 <div className="filter-label">Status</div>
-                <select className="filter-select"><option>All Statuses</option><option>Active</option><option>Under Review</option><option>Closed</option></select>
-                <button className="create-btn" onClick={() => showToast("✍️ Create Petition form opening...")}>＋ Create New Petition</button>
+                <select className="filter-select"><option>All Statuses</option>{[...new Set(backendPetitions.map((p) => formatStatus(p.status)))].map((status) => (<option key={status}>{status}</option>))}</select>
+                <button className="create-btn" onClick={handleCreatePetition}>＋ Create New Petition</button>
               </div>
 
               <div className="petitions-list">
                 <h1>Browse Petitions</h1>
                 <div className="petitions-count">{filteredPetitions.length} petitions found</div>
                 {filteredPetitions.map(p => (
-                  <div className="petition-card-list" key={p.id}>
+                  <div className="petition-card-list" key={p._id}>
                     <div>
                       <h3>{p.title}</h3>
-                      <p>{p.desc}</p>
+                      <p>{p.description}</p>
                       <div className="petition-list-meta">
                         <span>Category: <span className="tag tag-cat" style={{ marginLeft: 4 }}>{p.category}</span></span>
                         <span>📍 {p.location}</span>
                         {statusTag(p.status)}
-                        <span>📄 {p.signatures} signatures</span>
+                        <span>📄 {p.signatureCount} signatures</span>
                       </div>
                     </div>
                     <div style={{ flexShrink: 0 }}>
                       <button className="view-btn-card" onClick={() => showToast(`📋 Opening: ${p.title}`)}>View Details</button>
+                      {(p.creator === user?._id || user?.role === "government_official") && (
+                        <button className="results-btn" style={{ marginTop: 10 }} onClick={() => handleDeletePetition(p._id)}>Delete</button>
+                      )}
                     </div>
                   </div>
                 ))}
@@ -579,7 +632,7 @@ export default function CivixDashboard() {
 
               {filteredPolls.length === 0 && <div style={{ color: "#888", fontSize: 14, padding: "20px 0" }}>No polls in this category.</div>}
               {filteredPolls.map(p => (
-                <div className="poll-card" key={p.id}>
+                <div className="poll-card" key={p._id}>
                   <div>
                     <div className="poll-tags">
                       <span className="tag tag-active">Active</span>
