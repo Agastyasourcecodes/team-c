@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { usePetitions } from '../context/PetitionContext';
+import { usePetitions } from './PetitionContext';
 import './CreatePetition.css';
 
 const CreatePetition = ({ onClose }) => {
   const { createNewPetition, user } = usePetitions();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    category: 'Other',
+    category: 'Environment',
     location: '',
     signatureGoal: 100
   });
@@ -36,10 +37,15 @@ const CreatePetition = ({ onClose }) => {
       return;
     }
 
+    setIsSubmitting(true);
     const result = await createNewPetition(formData);
+    setIsSubmitting(false);
+
     if (result.success) {
-      alert('Petition created successfully! It will be under review.');
+      alert('Petition created successfully! It is currently under review.');
       onClose();
+    } else {
+      alert(result.error || 'Failed to create petition');
     }
   };
 
@@ -110,8 +116,12 @@ const CreatePetition = ({ onClose }) => {
           </div>
 
           <div className="modal-actions">
-            <button type="submit" className="submit-btn">Create Petition</button>
-            <button type="button" onClick={onClose} className="cancel-btn">Cancel</button>
+            <button type="submit" className="submit-btn" disabled={isSubmitting}>
+              {isSubmitting ? 'Creating...' : 'Create Petition'}
+            </button>
+            <button type="button" onClick={onClose} className="cancel-btn" disabled={isSubmitting}>
+              Cancel
+            </button>
           </div>
         </form>
       </div>

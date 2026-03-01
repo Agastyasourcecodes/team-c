@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { usePetitions } from '../context/PetitionContext';
-import PetitionCard from '../components/PetitionCard';
-import CreatePetition from '../components/CreatePetition';
+import { usePetitions } from './PetitionContext';
+import PetitionCard from './PetitionCard';
+import CreatePetition from './CreatePetition';
 import './PetitionsPage.css';
 
 const PetitionsPage = () => {
@@ -12,6 +12,7 @@ const PetitionsPage = () => {
 
   useEffect(() => {
     fetchPetitions();
+    // eslint-disable-next-line
   }, []);
 
   const filteredPetitions = petitions.filter(petition => {
@@ -23,10 +24,12 @@ const PetitionsPage = () => {
     // Filter by search term
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
-      return petition.title.toLowerCase().includes(searchLower) ||
-             petition.description.toLowerCase().includes(searchLower) ||
-             petition.category.toLowerCase().includes(searchLower) ||
-             petition.location.toLowerCase().includes(searchLower);
+      return (
+        petition.title?.toLowerCase().includes(searchLower) ||
+        petition.description?.toLowerCase().includes(searchLower) ||
+        petition.category?.toLowerCase().includes(searchLower) ||
+        petition.location?.toLowerCase().includes(searchLower)
+      );
     }
     
     return true;

@@ -1,5 +1,5 @@
 import React from 'react';
-import { usePetitions } from '../context/PetitionContext';
+import { usePetitions } from './PetitionContext';
 import './PetitionCard.css';
 
 const PetitionCard = ({ petition }) => {

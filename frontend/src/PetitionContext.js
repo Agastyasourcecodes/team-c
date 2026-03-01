@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import * as api from '../services/api';
+import * as api from './api'; // Directly imports from src/api.js
 
 const PetitionContext = createContext();
 
@@ -36,9 +36,10 @@ export const PetitionProvider = ({ children }) => {
     setLoading(true);
     try {
       const { data } = await api.createPetition(petitionData);
-      setPetitions([data, ...petitions]);
+      // Backend returns { message, petition }, so we extract just the 'petition' object to update state
+      setPetitions([data.petition, ...petitions]);
       setError(null);
-      return { success: true, data };
+      return { success: true, data: data.petition };
     } catch (err) {
       setError(err.response?.data?.message || 'Error creating petition');
       return { success: false, error: err.response?.data?.message };
@@ -51,7 +52,11 @@ export const PetitionProvider = ({ children }) => {
     try {
       const { data } = await api.signPetition(id);
       setPetitions(petitions.map(p => 
-        p._id === id ? { ...p, signatureCount: p.signatureCount + 1 } : p
+        p._id === id ? { 
+          ...p, 
+          signatureCount: data.currentSignatures,
+          status: data.currentSignatures >= p.signatureGoal ? 'active' : p.status
+        } : p
       ));
       return { success: true, data };
     } catch (err) {
