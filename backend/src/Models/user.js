@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema({
   location: {
     type: String,
   },
+  isVerified: {
+    type: Boolean,
+    default: false,
+  }
 }, { timestamps: true });
 
 module.exports = mongoose.model("User", userSchema);

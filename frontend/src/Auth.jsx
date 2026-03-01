@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './Auth.css';
-import CardSwap, { Card } from './CardSwap';
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -59,7 +58,7 @@ export default function Auth() {
       localStorage.setItem('user', JSON.stringify(data.user));
 
       // Route based on role
-      if (data.user.role === 'government_official') {
+      if (data.user.role === 'official') {
         navigate('/official-dashboard');
       } else {
         navigate('/dashboard');
@@ -110,7 +109,7 @@ export default function Auth() {
         throw new Error(data.message || 'Failed to register');
       }
 
-      alert("Registration successful! Please sign in.");
+      alert(data.message); // Shows dynamic success or pending verification message
       toggleMode(); // Switch to login view
 
     } catch (err) {
@@ -134,189 +133,186 @@ export default function Auth() {
 
   return (
     <div className="login-page">
-    <div className="auth-container">
-      <div className="auth-card">
-        {isLogin ? (
-          <>
-            <h1 className="auth-title">Welcome Back</h1>
-            <p className="auth-subtitle">Sign in to your account</p>
+      <div className="auth-container">
+        <div className="auth-card">
+          {isLogin ? (
+            <>
+              <h1 className="auth-title">Welcome Back</h1>
+              <p className="auth-subtitle">Sign in to your account</p>
 
-            <form onSubmit={handleLogin} className="auth-form">
-              <div className="form-group">
-                <label>Email</label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="your@email.com"
-                  required
-                />
+              <form onSubmit={handleLogin} className="auth-form">
+                <div className="form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="your@email.com"
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>Password</label>
+                  <input
+                    type="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="••••••••"
+                    required
+                  />
+                </div>
+
+                {error && <div className="error-message">{error}</div>}
+
+                <button type="submit" className="auth-button" disabled={loading}>
+                  {loading ? 'Signing in...' : 'Sign In'}
+                </button>
+              </form>
+
+              <div className="auth-divider">
+                <span>Don't have an account?</span>
               </div>
 
-              <div className="form-group">
-                <label>Password</label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  placeholder="••••••••"
-                  required
-                />
-              </div>
-
-              {error && <div className="error-message">{error}</div>}
-
-              <button type="submit" className="auth-button" disabled={loading}>
-                {loading ? 'Signing in...' : 'Sign In'}
+              <button className="toggle-button" onClick={toggleMode}>
+                Create an Account
               </button>
-            </form>
+            </>
+          ) : (
+            <>
+              <h1 className="auth-title">Join Our Platform</h1>
+              <p className="auth-subtitle">Choose your role</p>
 
-            <div className="auth-divider">
-              <span>Don't have an account?</span>
-            </div>
+              {!selectedRole ? (
+                <div className="role-selection-container">
+                  <p className="role-question" style={{ marginBottom: '20px' }}>Select your role:</p>
 
-            <button className="toggle-button" onClick={toggleMode}>
-              Create an Account
-            </button>
-          </>
-        ) : (
-          <>
-            <h1 className="auth-title">Join Our Platform</h1>
-            <p className="auth-subtitle">Choose your role</p>
-
-            {!selectedRole ? (
-              <div className="role-selection-container">
-                <p className="role-question">Swipe to select your role:</p>
-
-                <CardSwap
-                  delay={10000}
-                  pauseOnHover={true}
-                  cardDistance={60}
-                  verticalDistance={40}
-                >
-                  <Card>
-                    <div className="role-card-content">
-                      <div className="role-icon">👤</div>
-                      <h3>Citizen</h3>
-                      <p>Create and sign petitions<br />voice your concerns</p>
+                  {/* ✅ FIX: Replaced CardSwap with a standard flexbox layout */}
+                  <div style={{ display: 'flex', gap: '20px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                    
+                    {/* Citizen Card */}
+                    <div className="role-card-content" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '15px', flex: '1 1 200px', textAlign: 'center' }}>
+                      <div className="role-icon" style={{ fontSize: '3rem', marginBottom: '10px' }}>👤</div>
+                      <h3 style={{ marginBottom: '10px' }}>Citizen</h3>
+                      <p style={{ fontSize: '0.9rem', marginBottom: '20px', opacity: 0.8 }}>Create and sign petitions<br />voice your concerns</p>
                       <button
                         className="select-role-btn"
                         onClick={() => setSelectedRole('citizen')}
+                        style={{ width: '100%', padding: '10px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                       >
                         Select
                       </button>
                     </div>
-                  </Card>
 
-                  <Card>
-                    <div className="role-card-content">
-                      <div className="role-icon">🏛️</div>
-                      <h3>Government Official</h3>
-                      <p>Review and respond to<br />citizen petitions</p>
+                    {/* Official Card */}
+                    <div className="role-card-content" style={{ backgroundColor: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', padding: '20px', borderRadius: '15px', flex: '1 1 200px', textAlign: 'center' }}>
+                      <div className="role-icon" style={{ fontSize: '3rem', marginBottom: '10px' }}>🏛️</div>
+                      <h3 style={{ marginBottom: '10px' }}>Government Official</h3>
+                      <p style={{ fontSize: '0.9rem', marginBottom: '20px', opacity: 0.8 }}>Review and respond to<br />citizen petitions</p>
                       <button
                         className="select-role-btn"
-                        onClick={() => setSelectedRole('government_official')}
+                        onClick={() => setSelectedRole('official')}
+                        style={{ width: '100%', padding: '10px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
                       >
                         Select
                       </button>
                     </div>
-                  </Card>
-                </CardSwap>
-              </div>
-            ) : (
-              <>
-                <form onSubmit={handleRegister} className="auth-form">
 
-                  <div className="selected-role">
-                    <span className="role-badge">
-                      {selectedRole === 'citizen'
-                        ? '👤 Citizen'
-                        : '🏛️ Government Official'}
-                    </span>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <form onSubmit={handleRegister} className="auth-form">
+                    <div className="selected-role">
+                      <span className="role-badge">
+                        {selectedRole === 'citizen'
+                          ? '👤 Citizen'
+                          : '🏛️ Government Official'}
+                      </span>
+
+                      <button
+                        type="button"
+                        className="change-role-btn"
+                        onClick={() => setSelectedRole(null)}
+                      >
+                        Change Role
+                      </button>
+                    </div>
+
+                    <div className="form-group">
+                      <label>Full Name</label>
+                      <input
+                        type="text"
+                        name="fullName"
+                        value={formData.fullName}
+                        onChange={handleInputChange}
+                        placeholder="Your full name"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Email</label>
+                      <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        placeholder="your@email.com"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Password</label>
+                      <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        placeholder="••••••••"
+                        required
+                      />
+                    </div>
+
+                    <div className="form-group">
+                      <label>Confirm Password</label>
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleInputChange}
+                        placeholder="••••••••"
+                        required
+                      />
+                    </div>
+
+                    {error && <div className="error-message">{error}</div>}
 
                     <button
-                      type="button"
-                      className="change-role-btn"
-                      onClick={() => setSelectedRole(null)}
+                      type="submit"
+                      className="auth-button"
+                      disabled={loading}
                     >
-                      Change Role
+                      {loading ? 'Creating Account...' : 'Create Account'}
                     </button>
+                  </form>
+
+                  <div className="auth-divider">
+                    <span>Already have an account?</span>
                   </div>
 
-                  <div className="form-group">
-                    <label>Full Name</label>
-                    <input
-                      type="text"
-                      name="fullName"
-                      value={formData.fullName}
-                      onChange={handleInputChange}
-                      placeholder="Your full name"
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Email</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleInputChange}
-                      placeholder="your@email.com"
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Password</label>
-                    <input
-                      type="password"
-                      name="password"
-                      value={formData.password}
-                      onChange={handleInputChange}
-                      placeholder="••••••••"
-                      required
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label>Confirm Password</label>
-                    <input
-                      type="password"
-                      name="confirmPassword"
-                      value={formData.confirmPassword}
-                      onChange={handleInputChange}
-                      placeholder="••••••••"
-                      required
-                    />
-                  </div>
-
-                  {error && <div className="error-message">{error}</div>}
-
-                  <button
-                    type="submit"
-                    className="auth-button"
-                    disabled={loading}
-                  >
-                    {loading ? 'Creating Account...' : 'Create Account'}
+                  <button className="toggle-button" onClick={toggleMode}>
+                    Sign In
                   </button>
-                </form>
-
-                <div className="auth-divider">
-                  <span>Already have an account?</span>
-                </div>
-
-                <button className="toggle-button" onClick={toggleMode}>
-                  Sign In
-                </button>
-              </>
-            )}
-          </>
-        )}
+                </>
+              )}
+            </>
+          )}
+        </div>
       </div>
-    </div>
     </div>
   );
 }

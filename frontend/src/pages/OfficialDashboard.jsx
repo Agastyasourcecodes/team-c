@@ -12,50 +12,68 @@ const OfficialDashboard = () => {
   ];
 
   return (
-    <div className="flex h-screen w-full bg-slate-950/60 backdrop-blur-md overflow-hidden text-white font-sans">
+    // Replaced h-screen with a flexible height, added frosted glass effect to let Aurora show through
+    <div className="flex min-h-[85vh] w-full max-w-[1400px] mx-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden text-slate-100 font-sans mt-4">
+      
       {/* SIDEBAR */}
-      <div className="w-72 bg-black/60 backdrop-blur-3xl border-r border-white/10 p-8 flex flex-col shadow-2xl">
-        <h2 className="text-2xl font-black tracking-tighter italic mb-12">
-          CIV<span className="text-blue-500">IX</span> <span className="text-[9px] bg-blue-500/20 text-blue-400 px-2 py-1 rounded-md align-middle ml-2 not-italic">GOVT</span>
-        </h2>
+      <div className="w-64 bg-black/20 border-r border-white/10 p-6 flex flex-col z-10">
+        <div className="mb-10">
+          <h2 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+            <span>CIV<span className="text-blue-400">IX</span></span>
+            <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-semibold uppercase tracking-wider">
+              GOVT
+            </span>
+          </h2>
+        </div>
         
-        <nav className="space-y-4 flex-1">
-          <button onClick={() => setActiveTab('overview')} className={`w-full text-left px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'overview' ? 'bg-blue-600 shadow-lg shadow-blue-500/30 text-white' : 'text-slate-500 hover:bg-white/5 hover:text-white'}`}>
-            <i className="bi bi-grid-1x2-fill mr-3"></i> Overview
+        <nav className="space-y-2 flex-1">
+          <button 
+            onClick={() => setActiveTab('overview')} 
+            className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'overview' ? 'bg-blue-600/80 text-white shadow-lg shadow-blue-500/20' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`}
+          >
+            <i className="bi bi-grid-1x2-fill mr-3 text-lg"></i> Overview
           </button>
-          <button onClick={() => setActiveTab('approvals')} className={`w-full text-left px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'approvals' ? 'bg-blue-600 shadow-lg shadow-blue-500/30 text-white' : 'text-slate-500 hover:bg-white/5 hover:text-white'}`}>
-            <i className="bi bi-shield-check mr-3"></i> Verification
+          <button 
+            onClick={() => setActiveTab('approvals')} 
+            className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'approvals' ? 'bg-blue-600/80 text-white shadow-lg shadow-blue-500/20' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`}
+          >
+            <i className="bi bi-shield-check mr-3 text-lg"></i> Verification
           </button>
-          <button onClick={() => setActiveTab('grievances')} className={`w-full text-left px-6 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeTab === 'grievances' ? 'bg-blue-600 shadow-lg shadow-blue-500/30 text-white' : 'text-slate-500 hover:bg-white/5 hover:text-white'}`}>
-            <i className="bi bi-chat-right-dots-fill mr-3"></i> Complaints
+          <button 
+            onClick={() => setActiveTab('grievances')} 
+            className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'grievances' ? 'bg-blue-600/80 text-white shadow-lg shadow-blue-500/20' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`}
+          >
+            <i className="bi bi-chat-right-dots-fill mr-3 text-lg"></i> Complaints
           </button>
         </nav>
 
-        <button className="text-left px-6 py-4 text-red-500 hover:bg-red-500/10 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all mt-auto border border-red-500/20">
-          <i className="bi bi-box-arrow-left mr-3"></i> Sign Out
+        <button className="flex items-center px-4 py-3 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-medium transition-all mt-auto">
+          <i className="bi bi-box-arrow-left mr-3 text-lg"></i> Sign Out
         </button>
       </div>
 
       {/* MAIN CONTENT */}
-      <div className="flex-1 overflow-y-auto p-12 custom-scrollbar bg-gradient-to-br from-blue-900/5 to-transparent">
-        <header className="flex justify-between items-center mb-16">
+      <div className="flex-1 overflow-y-auto p-8 md:p-12 custom-scrollbar">
+        <header className="flex justify-between items-center mb-10 border-b border-white/10 pb-6">
           <div>
-            <h1 className="text-5xl font-black tracking-tighter mb-2">
+            <h1 className="text-3xl font-bold text-white tracking-tight mb-1">
               {activeTab === 'overview' ? 'Command Centre' : activeTab === 'approvals' ? 'Official Approvals' : 'Active Grievances'}
             </h1>
-            <p className="text-blue-500 font-black uppercase text-[10px] tracking-[0.4em] opacity-70">Ministry of Urban Development</p>
+            <p className="text-blue-200 text-sm font-medium opacity-80">Ministry of Urban Development</p>
           </div>
-          <div className="flex items-center gap-4 bg-white/5 p-2 pr-6 rounded-full border border-white/10 shadow-inner hover:bg-white/10 transition-all cursor-pointer">
-            <div className="h-10 w-10 bg-gradient-to-tr from-blue-600 to-sky-400 rounded-full flex items-center justify-center font-black">A</div>
+          <div className="flex items-center gap-3 bg-black/20 p-2 pr-4 rounded-full border border-white/10 hover:bg-white/5 transition-colors cursor-pointer">
+            <div className="h-10 w-10 bg-gradient-to-tr from-blue-600 to-sky-400 rounded-full flex items-center justify-center font-bold text-white shadow-inner">
+              A
+            </div>
             <div className="flex flex-col">
-              <span className="text-[10px] font-black uppercase tracking-widest">Government Official</span>
-              <span className="text-[9px] text-blue-400 font-bold uppercase"></span>
+              <span className="text-sm font-semibold text-white">Government Official</span>
+              <span className="text-xs text-blue-300 opacity-80">Admin Role</span>
             </div>
           </div>
         </header>
 
         {/* CONTENT SWITCHER */}
-        <div className="max-w-6xl">
+        <div className="max-w-5xl mx-auto">
           {activeTab === 'overview' && <StatsCards />}
           {activeTab === 'approvals' && <ApprovalTable officials={pendingOfficials} />}
           {activeTab === 'grievances' && <GrievanceList />}
