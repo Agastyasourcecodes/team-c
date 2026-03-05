@@ -1,18 +1,69 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StatsCards } from '../components/OfficialDashboard/StatsCards';
 import { ApprovalTable } from '../components/OfficialDashboard/ApprovalTable';
 import { GrievanceList } from '../components/OfficialDashboard/GrievanceList';
 
 const OfficialDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
-  
-  const pendingOfficials = [
-    { id: 1, name: 'Rahul Chaudhary', empId: 'GOV-IND-992', email: 'rahul@civix.gov' },
-    { id: 2, name: 'Priya Mehra', empId: 'GOV-IND-401', email: 'priya@civix.gov' }
-  ];
+  const [pendingOfficials, setPendingOfficials] = useState([]);
+
+  // Fetch pending officials when the approvals tab is opened
+  useEffect(() => {
+    if (activeTab === 'approvals') {
+      fetchPendingOfficials();
+    }
+  }, [activeTab]);
+
+  const fetchPendingOfficials = async () => {
+    try {
+      const token = localStorage.getItem("token"); // Assuming you store the JWT here
+      const response = await fetch("http://localhost:5000/api/officials/pending", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setPendingOfficials(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch officials", error);
+    }
+  };
+
+  const handleApprove = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:5000/api/officials/approve/${id}`, {
+        method: "PUT",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        // Remove the approved user from the pending list
+        setPendingOfficials(pendingOfficials.filter(off => off._id !== id));
+      }
+    } catch (error) {
+      console.error("Error approving official", error);
+    }
+  };
+
+  const handleReject = async (id) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:5000/api/officials/reject/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.ok) {
+        // Remove the rejected user from the pending list
+        setPendingOfficials(pendingOfficials.filter(off => off._id !== id));
+      }
+    } catch (error) {
+      console.error("Error rejecting official", error);
+    }
+  };
 
   return (
-    // Replaced h-screen with a flexible height, added frosted glass effect to let Aurora show through
     <div className="flex min-h-[85vh] w-full max-w-[1400px] mx-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden text-slate-100 font-sans mt-4">
       
       {/* SIDEBAR */}
@@ -75,7 +126,13 @@ const OfficialDashboard = () => {
         {/* CONTENT SWITCHER */}
         <div className="max-w-5xl mx-auto">
           {activeTab === 'overview' && <StatsCards />}
-          {activeTab === 'approvals' && <ApprovalTable officials={pendingOfficials} />}
+          {activeTab === 'approvals' && (
+            <ApprovalTable 
+              officials={pendingOfficials} 
+              onApprove={handleApprove} 
+              onReject={handleReject} 
+            />
+          )}
           {activeTab === 'grievances' && <GrievanceList />}
         </div>
       </div>

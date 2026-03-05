@@ -16,10 +16,12 @@ app.use((req, res, next) => {
 const petitionRoutes = require("./src/Routes/petitionRoutes");
 const authRoutes = require("./src/Routes/authRoutes");
 const pollRoutes = require("./src/Routes/pollRoutes");
+const officialRoutes = require("./src/Routes/officialRoutes"); // ADDED THIS LINE
 
 app.use("/api/petitions", petitionRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/polls", pollRoutes);
+app.use("/api/officials", officialRoutes); // ADDED THIS LINE
 
 app.get("/", (req, res) => res.send("API running"));
 
