@@ -2,6 +2,9 @@
   display: flex;
   height: 100vh;
   backdrop-filter: blur(20px);
+  min-height: 100vh;
+  overflow: hidden;
+  margin-top: -60px;
 }
 
 .sidebar {
@@ -9,6 +12,8 @@
   background: #111144;
   color: #F4F1EC;
   padding: 30px 20px;
+  min-height: 100vh;
+  flex-shrink: 0;
 }
 
 .logo {
@@ -40,6 +45,8 @@
   background: rgba(255,255,255,0.85);
   border-radius: 20px;
   margin: 20px;
+  overflow-y: auto;         
+  height: calc(100vh - 40px);
 }
 
 .dashboard-header {

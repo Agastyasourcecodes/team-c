@@ -288,7 +288,7 @@ html, body, #root {
 }
 .scrollable {
   align-items: flex-start !important;
-  overflow-y: auto;
-  height: 100vh;
+  overflow-y: visible;
+  height: auto;
   padding-top: 60px;
 }
