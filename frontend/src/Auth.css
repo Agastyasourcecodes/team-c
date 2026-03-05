@@ -100,8 +100,7 @@
 }
 
 .auth-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+  opacity: 0.95;
 }
 
 .auth-button:disabled {
@@ -136,11 +135,6 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.toggle-button:hover {
-  background: #4ECDC4;
-  color: white;
 }
 
 /* Role Selection with CardSwap */
@@ -270,8 +264,7 @@
 }
 
 .auth-button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(255, 107, 107, 0.3);
+  opacity: 0.95;
 }
 
 .auth-button:disabled {
@@ -306,11 +299,6 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
-}
-
-.toggle-button:hover {
-  background: #4ECDC4;
-  color: white;
 }
 
 /* Role Selection Styles */
@@ -421,9 +409,36 @@
     padding: 20px;
   }
 }
+
+.auth-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #10b981;
+  color: white;
+  padding: 14px 20px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  animation: slideDown 0.3s ease-out;
+  z-index: 5000;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 .login-page {
   min-height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
+  overflow: hidden;
 }
