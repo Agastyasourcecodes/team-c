@@ -7,7 +7,7 @@ exports.createPetition = async (req, res) => {
 
     if (
       !title ||
-      !description ||
+      
       !category ||
       !location ||
       signatureGoal === undefined

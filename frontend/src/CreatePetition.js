@@ -67,14 +67,13 @@ const CreatePetition = ({ onClose }) => {
           </div>
 
           <div className="form-group">
-            <label>Description (min 20 characters):</label>
+            <label>Description (optional):</label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleChange}
-              minLength="20"
               rows="5"
-              required
+              /* required and minLength are removed from here! */
             />
           </div>
 
