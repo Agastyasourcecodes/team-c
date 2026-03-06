@@ -3,22 +3,26 @@ import { useNavigate } from 'react-router-dom';
 import { StatsCards } from '../components/OfficialDashboard/StatsCards';
 import { ApprovalTable } from '../components/OfficialDashboard/ApprovalTable';
 import { GrievanceList } from '../components/OfficialDashboard/GrievanceList';
+import { fetchPetitions } from '../api'; 
 
 const OfficialDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [pendingOfficials, setPendingOfficials] = useState([]);
+  const [petitions, setPetitions] = useState([]); 
 
-  // Fetch pending officials when the approvals tab is opened
+  // Fetch data based on the active tab
   useEffect(() => {
     if (activeTab === 'approvals') {
       fetchPendingOfficials();
+    } else if (activeTab === 'grievances') {
+      loadPetitions();
     }
   }, [activeTab]);
 
   const fetchPendingOfficials = async () => {
     try {
-      const token = localStorage.getItem("token"); // Assuming you store the JWT here
+      const token = localStorage.getItem("token"); 
       const response = await fetch("http://localhost:5000/api/officials/pending", {
         headers: {
           Authorization: `Bearer ${token}`
@@ -33,6 +37,15 @@ const OfficialDashboard = () => {
     }
   };
 
+  const loadPetitions = async () => {
+    try {
+      const { data } = await fetchPetitions();
+      setPetitions(data);
+    } catch (error) {
+      console.error("Failed to fetch petitions", error);
+    }
+  };
+
   const handleApprove = async (id) => {
     try {
       const token = localStorage.getItem("token");
@@ -41,7 +54,6 @@ const OfficialDashboard = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
-        // Remove the approved user from the pending list
         setPendingOfficials(pendingOfficials.filter(off => off._id !== id));
       }
     } catch (error) {
@@ -57,7 +69,6 @@ const OfficialDashboard = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.ok) {
-        // Remove the rejected user from the pending list
         setPendingOfficials(pendingOfficials.filter(off => off._id !== id));
       }
     } catch (error) {
@@ -65,10 +76,11 @@ const OfficialDashboard = () => {
     }
   };
 
+  // Sign out function
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    navigate('/');
+    navigate('/'); 
   };
 
   return (
@@ -144,7 +156,7 @@ const OfficialDashboard = () => {
               onReject={handleReject} 
             />
           )}
-          {activeTab === 'grievances' && <GrievanceList />}
+          {activeTab === 'grievances' && <GrievanceList grievances={petitions} />}
         </div>
       </div>
     </div>
