@@ -64,7 +64,6 @@ export const PetitionProvider = ({ children }) => {
     }
   };
 
-  // NEW: Delete existing petition and update state
   const deleteExistingPetition = async (id) => {
     try {
       await api.deletePetition(id);
@@ -72,6 +71,18 @@ export const PetitionProvider = ({ children }) => {
       return { success: true };
     } catch (err) {
       setError(err.response?.data?.message || 'Error deleting petition');
+      return { success: false, error: err.response?.data?.message };
+    }
+  };
+
+  // NEW: Edit existing petition and update state
+  const editExistingPetition = async (id, updatedData) => {
+    try {
+      const { data } = await api.updatePetition(id, updatedData);
+      setPetitions(petitions.map(p => p._id === id ? data.petition : p));
+      return { success: true, data: data.petition };
+    } catch (err) {
+      setError(err.response?.data?.message || 'Error editing petition');
       return { success: false, error: err.response?.data?.message };
     }
   };
@@ -86,7 +97,8 @@ export const PetitionProvider = ({ children }) => {
       fetchPetitions,
       createNewPetition,
       signExistingPetition,
-      deleteExistingPetition // Exported delete function
+      deleteExistingPetition,
+      editExistingPetition // Exported edit function
     }}>
       {children}
     </PetitionContext.Provider>

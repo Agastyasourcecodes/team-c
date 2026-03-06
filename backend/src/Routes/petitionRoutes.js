@@ -6,12 +6,14 @@ const {
   createPetition,
   getPetitions,
   signPetition,
-  deletePetition, // Imported the new controller
+  deletePetition, 
+  updatePetition, // Imported the update controller
 } = require("../Controllers/petitionController");
 
 router.post("/", auth, createPetition);
 router.get("/", getPetitions);  
 router.post("/:id/sign", auth, signPetition);
-router.delete("/:id", auth, deletePetition); // Added delete route
+router.delete("/:id", auth, deletePetition); 
+router.put("/:id", auth, updatePetition); // Added update route
 
 module.exports = router;

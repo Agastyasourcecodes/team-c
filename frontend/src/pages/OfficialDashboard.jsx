@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { StatsCards } from '../components/OfficialDashboard/StatsCards';
 import { ApprovalTable } from '../components/OfficialDashboard/ApprovalTable';
 import { GrievanceList } from '../components/OfficialDashboard/GrievanceList';
 
 const OfficialDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [pendingOfficials, setPendingOfficials] = useState([]);
 
@@ -63,6 +65,12 @@ const OfficialDashboard = () => {
     }
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/');
+  };
+
   return (
     <div className="flex min-h-[85vh] w-full max-w-[1400px] mx-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden text-slate-100 font-sans mt-4">
       
@@ -98,7 +106,10 @@ const OfficialDashboard = () => {
           </button>
         </nav>
 
-        <button className="flex items-center px-4 py-3 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-medium transition-all mt-auto">
+        <button 
+          onClick={handleLogout}
+          className="flex items-center px-4 py-3 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-medium transition-all mt-auto"
+        >
           <i className="bi bi-box-arrow-left mr-3 text-lg"></i> Sign Out
         </button>
       </div>

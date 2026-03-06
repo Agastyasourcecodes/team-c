@@ -102,13 +102,15 @@ const style = `
   .view-all-btn { background: none; border: 1.5px solid #223382; color: #223382; font-size: 12px; font-weight: 600; padding: 6px 14px; border-radius: 8px; cursor: pointer; transition: all 0.15s; }
   .view-all-btn:hover { background: #223382; color: #fff; }
 
+  /* Added position relative here for absolute Edit Button */
   .petition-card-home {
+    position: relative;
     background: #fff; border-radius: 14px; padding: 20px 24px;
     box-shadow: 0 2px 14px rgba(0,0,0,0.07); margin-bottom: 16px;
     border: 1px solid #eaecf2; transition: box-shadow 0.2s, transform 0.2s;
   }
   .petition-card-home:hover { box-shadow: 0 6px 28px rgba(34,51,130,0.13); transform: translateY(-2px); }
-  .petition-card-home h3 { font-size: 15px; font-weight: 600; color: #111144; margin-bottom: 8px; }
+  .petition-card-home h3 { font-size: 15px; font-weight: 600; color: #111144; margin-bottom: 8px; width: 85%; }
   .petition-card-home p { font-size: 13px; color: #666; line-height: 1.55; margin-bottom: 12px; }
   .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
   .tag {
@@ -129,13 +131,23 @@ const style = `
   }
   .view-btn-card:hover { background: #1a2760; }
   
-  /* STYLES FOR DELETE BUTTON */
   .delete-btn {
     background: #e53e3e; color: #fff; border: none;
     padding: 8px 16px; border-radius: 8px; font-size: 13px; font-weight: 600;
     cursor: pointer; transition: background 0.15s; margin-left: 8px;
   }
   .delete-btn:hover { background: #c53030; }
+
+  /* ── NEW EDIT BUTTON ── */
+  .edit-btn-top-right {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: #eab308; color: #fff; border: none;
+    padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .edit-btn-top-right:hover { background: #ca8a04; }
 
   /* Right column */
   .engagement-card {
@@ -192,7 +204,10 @@ const style = `
 
   .petitions-list h1 { font-family: 'Playfair Display', serif; font-size: 28px; color: #111144; margin-bottom: 4px; }
   .petitions-count { font-size: 13px; color: #888; margin-bottom: 20px; }
+  
+  /* Added position relative */
   .petition-card-list {
+    position: relative;
     background: #fff; border-radius: 14px; padding: 22px 26px;
     box-shadow: 0 2px 14px rgba(0,0,0,0.06); margin-bottom: 16px;
     border: 1px solid #eaecf2; display: flex; align-items: flex-start;
@@ -200,7 +215,7 @@ const style = `
     transition: box-shadow 0.2s, transform 0.2s;
   }
   .petition-card-list:hover { box-shadow: 0 6px 28px rgba(34,51,130,0.12); transform: translateY(-2px); }
-  .petition-card-list h3 { font-size: 16px; font-weight: 700; color: #111144; margin-bottom: 8px; }
+  .petition-card-list h3 { font-size: 16px; font-weight: 700; color: #111144; margin-bottom: 8px; width: 85%; }
   .petition-card-list p { font-size: 13px; color: #666; line-height: 1.55; margin-bottom: 12px; }
   .petition-list-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; font-size: 12px; color: #888; }
   .petition-list-meta span { display: flex; align-items: center; gap: 4px; }
@@ -322,14 +337,16 @@ function statusTag(status) {
 export default function CivixDashboard() {
   const navigate = useNavigate();
   
-  // 👉 ADDED deleteExistingPetition HERE
-  const { petitions, fetchPetitions, signExistingPetition, deleteExistingPetition } = usePetitions();
+  const { petitions, fetchPetitions, signExistingPetition, deleteExistingPetition, editExistingPetition } = usePetitions();
   
   const [page, setPage] = useState("Home");
   const [pollTab, setPollTab] = useState("Active");
   const [petitionFilter, setPetitionFilter] = useState("All Petitions");
   const [toast, setToast] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  
+  // NEW: State for editing petition
+  const [editingPetition, setEditingPetition] = useState(null);
 
   const [user, setUser] = useState(null);
 
@@ -369,7 +386,6 @@ export default function CivixDashboard() {
     }
   };
 
-  // 👉 NEW DELETE HANDLER
   const handleDeletePetition = async (id) => {
     if (window.confirm("Are you sure you want to delete this petition?")) {
       const result = await deleteExistingPetition(id);
@@ -381,9 +397,20 @@ export default function CivixDashboard() {
     }
   };
 
+  // NEW: Submit Edit form
+  const handleEditSubmit = async (e) => {
+    e.preventDefault();
+    const result = await editExistingPetition(editingPetition._id, editingPetition);
+    if (result.success) {
+      showToast("✏️ Petition updated successfully!");
+      setEditingPetition(null); // Close modal
+    } else {
+      showToast("❌ " + (result.error || "Failed to edit petition"));
+    }
+  };
+
   const navItems = ["Home", "Petitions", "Polls", "Reports"];
 
-  // Filter actual petitions from DB
   const filteredPetitions = petitions.filter(p => {
     if (petitionFilter === "All Petitions") return true;
     if (petitionFilter === "My Petitions") return p.creator === user?._id;
@@ -463,6 +490,11 @@ export default function CivixDashboard() {
 
                 {petitions.slice(0, 3).map(p => (
                   <div className="petition-card-home" key={p._id}>
+                    {/* NEW: Edit button in top right if creator */}
+                    {p.creator === user?._id && (
+                      <button className="edit-btn-top-right" onClick={() => setEditingPetition(p)}>Edit</button>
+                    )}
+                    
                     <h3>{p.title}</h3>
                     <div className="tags">
                       <span className="tag tag-cat">{p.category}</span>
@@ -475,7 +507,6 @@ export default function CivixDashboard() {
                     </div>
                     <div>
                       <button className="view-btn-card" onClick={() => handleSignPetition(p._id)}>Sign Petition</button>
-                      {/* 👉 ONLY SHOW DELETE IF CREATOR */}
                       {p.creator === user?._id && (
                         <button className="delete-btn" onClick={() => handleDeletePetition(p._id)}>Delete</button>
                       )}
@@ -529,6 +560,11 @@ export default function CivixDashboard() {
                 
                 {filteredPetitions.map(p => (
                   <div className="petition-card-list" key={p._id}>
+                    {/* NEW: Edit button in top right if creator */}
+                    {p.creator === user?._id && (
+                      <button className="edit-btn-top-right" onClick={() => setEditingPetition(p)}>Edit</button>
+                    )}
+                    
                     <div>
                       <h3>{p.title}</h3>
                       <p>{p.description}</p>
@@ -541,7 +577,6 @@ export default function CivixDashboard() {
                     </div>
                     <div style={{ flexShrink: 0, display: 'flex', gap: '8px' }}>
                       <button className="view-btn-card" onClick={() => handleSignPetition(p._id)}>Sign Petition</button>
-                      {/* 👉 ONLY SHOW DELETE IF CREATOR */}
                       {p.creator === user?._id && (
                         <button className="delete-btn" onClick={() => handleDeletePetition(p._id)}>Delete</button>
                       )}
@@ -664,8 +699,29 @@ export default function CivixDashboard() {
         </div>
       </div>
       
+      {/* Existing Create Modal */}
       {showCreateModal && (
         <CreatePetition onClose={() => setShowCreateModal(false)} />
+      )}
+
+      {/* NEW: Edit Petition Modal */}
+      {editingPetition && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '400px', maxWidth: '90%', boxShadow: '0 10px 30px rgba(0,0,0,0.2)' }}>
+            <h2 style={{ fontFamily: "'Playfair Display', serif", marginBottom: '16px', color: '#111144' }}>Edit Petition</h2>
+            <form onSubmit={handleEditSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <input type="text" value={editingPetition.title} onChange={e => setEditingPetition({...editingPetition, title: e.target.value})} placeholder="Title" required style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontFamily: "'DM Sans', sans-serif" }} />
+              <textarea value={editingPetition.description} onChange={e => setEditingPetition({...editingPetition, description: e.target.value})} placeholder="Description" required rows={4} style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontFamily: "'DM Sans', sans-serif", resize: 'vertical' }} />
+              <input type="text" value={editingPetition.category} onChange={e => setEditingPetition({...editingPetition, category: e.target.value})} placeholder="Category" required style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontFamily: "'DM Sans', sans-serif" }} />
+              <input type="text" value={editingPetition.location} onChange={e => setEditingPetition({...editingPetition, location: e.target.value})} placeholder="Location" required style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontFamily: "'DM Sans', sans-serif" }} />
+              <input type="number" value={editingPetition.signatureGoal} onChange={e => setEditingPetition({...editingPetition, signatureGoal: e.target.value})} placeholder="Signature Goal" required style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc', fontFamily: "'DM Sans', sans-serif" }} />
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button type="submit" style={{ flex: 1, padding: '12px', background: '#223382', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Save Changes</button>
+                <button type="button" onClick={() => setEditingPetition(null)} style={{ flex: 1, padding: '12px', background: '#f0f2f7', color: '#333', border: '1px solid #ccc', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}>Cancel</button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </>
   );

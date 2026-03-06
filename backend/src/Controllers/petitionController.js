@@ -99,7 +99,6 @@ exports.getPetitions = async (req, res) => {
   }
 };
 
-// NEW: Delete Petition logic
 exports.deletePetition = async (req, res) => {
   try {
     const petition = await Petition.findById(req.params.id);
@@ -108,17 +107,46 @@ exports.deletePetition = async (req, res) => {
       return res.status(404).json({ message: "Petition not found" });
     }
 
-    // Ensure the user deleting the petition is the one who created it
     if (petition.creator.toString() !== req.user.id) {
       return res.status(403).json({ message: "User not authorized to delete this petition" });
     }
 
     await petition.deleteOne();
 
-    // Clean up signatures associated with the deleted petition
     await Signature.deleteMany({ petition: req.params.id });
 
     res.json({ message: "Petition removed successfully" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+// NEW: Edit/Update Petition logic
+exports.updatePetition = async (req, res) => {
+  try {
+    const petition = await Petition.findById(req.params.id);
+
+    if (!petition) {
+      return res.status(404).json({ message: "Petition not found" });
+    }
+
+    // Ensure the user editing the petition is the one who created it
+    if (petition.creator.toString() !== req.user.id) {
+      return res.status(403).json({ message: "User not authorized to edit this petition" });
+    }
+
+    const { title, description, category, location, signatureGoal } = req.body;
+    
+    // Update fields if provided
+    if (title) petition.title = title;
+    if (description) petition.description = description;
+    if (category) petition.category = category;
+    if (location) petition.location = location;
+    if (signatureGoal) petition.signatureGoal = signatureGoal;
+
+    await petition.save();
+
+    res.json({ message: "Petition updated successfully", petition });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
