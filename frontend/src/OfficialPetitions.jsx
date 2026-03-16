@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./OfficialPetitions.css";
+import "./styles/OfficialPetitions.css";
 
 const mockPetitions = [
   { id: 1, title: "Improve Public Transportation Infrastructure", desc: "Requesting expansion of metro lines to underserved neighborhoods and increased bus frequency during peak hours to accommodate growing commuter needs.", category: "Infrastructure", location: "Downtown District", status: "active", signatureCount: 1247 },

@@ -196,25 +196,6 @@
   font-size: 32px;
 }
 
-/* Role Select Button */
-.select-role-btn {
-  margin-top: 12px;
-  padding: 8px 16px;
-  background: linear-gradient(135deg, #D1D5DB, #1E40AF);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
-.select-role-btn:hover {
-  background: #1E40AF;
-  box-shadow: 0 5px 15px rgba(30, 64, 175, 0.3);
-}
-
 /* Selected Role */
 .selected-role {
   display: flex;
@@ -232,41 +213,15 @@
   color: #1E40AF;
 }
 
-.change-role-btn {
-  padding: 6px 12px;
-  background: white;
-  border: 1px solid #D1D5DB;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #1E40AF;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
+/* GLOBAL RESET */
 
-.change-role-btn:hover {
-  background: #F3F4F6;
-  border-color: #1E40AF;
-}
-
-/* Responsive */
-@media (max-width: 600px) {
-  .auth-card {
-    padding: 24px;
-  }
-
-  .auth-title {
-    font-size: 24px;
-  }
-
-  .role-card {
-    padding: 20px;
-  }
-}
 html, body, #root {
   height: 100%;
   margin: 0;
+  padding: 0;
 }
+
+/* APP CONTAINER */
 
 .App {
   position: relative;
@@ -274,21 +229,26 @@ html, body, #root {
   width: 100%;
 }
 
-/* Aurora fills entire screen */
+/* BACKGROUND ANIMATION */
+
 .app-background {
-  position: absolute;
+  position: fixed;
   inset: 0;
-  z-index: 0;
+  z-index: -1;
+  pointer-events: none;
 }
 
-/* Login centered on top */
+/* CONTENT ABOVE BACKGROUND */
+
 .app-content {
   position: relative;
   z-index: 1;
 }
+
+/* SCROLLABLE FIX */
+
 .scrollable {
   align-items: flex-start !important;
-  overflow-y: visible;
+  overflow-y: auto;
   height: auto;
-  padding-top: 60px;
 }

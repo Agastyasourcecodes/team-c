@@ -1,42 +1,63 @@
-import './App.css';
+import './styles/App.css';
 import { Routes, Route, useLocation } from 'react-router-dom';
-import Auth from './Auth';
-import Aurora from './Aurora';
+import { PetitionProvider } from './context/PetitionContext';
+import { LoaderProvider } from './context/LoaderContext';
+
+import Landing from './pages/Landing';
 import Dashboard from './Dashboard';
-import Landing from './Landing';
 import OfficialDashboard from './pages/OfficialDashboard';
 import OfficialPetitions from './OfficialPetitions';
-import { PetitionProvider } from './PetitionContext';
+
+import CitizenLogin from './pages/CitizenLogin';
+import CitizenSignup from './pages/CitizenSignup';
+import OfficialLogin from './pages/OfficialLogin';
+import OfficialSignup from './pages/OfficialSignup';
+
+
+import CivixDashboard from './pages/CivixDashboard';
+import Auth from "./pages/Auth";
 
 function App() {
+
   const location = useLocation();
-  const isLoginPage = location.pathname === "/login";
 
   return (
     <div className="App">
 
-      <div className="app-background">
-        <Aurora
-          colorStops={['#223382', '#9BACD8', '#223382']}
-          amplitude={1.2}
-          blend={0.6}
-          speed={isLoginPage ? 0 : 1}
-        />
-      </div>
+      <LoaderProvider>
 
-      <div className={`app-content ${location.pathname !== "/login" ? "scrollable" : ""}`}>
+        <div className={`app-content ${location.pathname !== "/citizen-login" ? "scrollable" : ""}`}>
 
-        <PetitionProvider>
-          <Routes>
-            <Route path="/" element={<Landing />} />
-            <Route path="/login" element={<Auth />} />
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/official-dashboard" element={<OfficialDashboard />} />
-            <Route path="/official-petitions" element={<OfficialPetitions />} />
-          </Routes>
-        </PetitionProvider>
+          <PetitionProvider>
 
-      </div>
+            <Routes>
+
+              {/* Landing */}
+              <Route path="/" element={<Landing />} />
+              <Route path="/auth" element={<Auth />} />
+
+              {/* Citizen */}
+              <Route path="/citizen-login" element={<CitizenLogin />} />
+              <Route path="/citizen-signup" element={<CitizenSignup />} />
+
+              {/* Official */}
+              <Route path="/official-login" element={<OfficialLogin />} />
+              <Route path="/official-signup" element={<OfficialSignup />} />
+
+              {/* Dashboards */}
+               <Route path="/dash" element={<Dashboard />} /> 
+              <Route path="/dashboard" element={<CivixDashboard />} />
+              <Route path="/official-dashboard" element={<OfficialDashboard />} />
+
+              <Route path="/official-petitions" element={<OfficialPetitions />} />
+
+            </Routes>
+
+          </PetitionProvider>
+
+        </div>
+
+      </LoaderProvider>
 
     </div>
   );

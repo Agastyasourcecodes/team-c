@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import * as api from './api'; 
+import * as api from '../api'; 
 
 const PetitionContext = createContext();
 
@@ -50,13 +50,22 @@ export const PetitionProvider = ({ children }) => {
   const signExistingPetition = async (id) => {
     try {
       const { data } = await api.signPetition(id);
-      setPetitions(petitions.map(p => 
+      
+      // FIX: Yahan voters array ko update karna zaroori hai
+      setPetitions(prevPetitions => prevPetitions.map(p => 
         p._id === id ? { 
           ...p, 
           signatureCount: data.currentSignatures,
+          // Agar backend voters list bhej raha hai toh wo use karo, 
+          // nahi toh manually current user ki ID push kardo state mein
+          voters: data.voters || [...(p.voters || []), user?._id],
           status: data.currentSignatures >= p.signatureGoal ? 'active' : p.status
         } : p
       ));
+
+      // Extra Safety: Backend se fresh data sync karlo
+      // await fetchPetitions(); 
+
       return { success: true, data };
     } catch (err) {
       setError(err.response?.data?.message || 'Error signing petition');
@@ -75,7 +84,6 @@ export const PetitionProvider = ({ children }) => {
     }
   };
 
-  // NEW: Edit existing petition and update state
   const editExistingPetition = async (id, updatedData) => {
     try {
       const { data } = await api.updatePetition(id, updatedData);
@@ -98,7 +106,7 @@ export const PetitionProvider = ({ children }) => {
       createNewPetition,
       signExistingPetition,
       deleteExistingPetition,
-      editExistingPetition // Exported edit function
+      editExistingPetition 
     }}>
       {children}
     </PetitionContext.Provider>

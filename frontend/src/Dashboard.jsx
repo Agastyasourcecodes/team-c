@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
-import { usePetitions } from './PetitionContext';
-import CreatePetition from './CreatePetition';
+import { usePetitions } from './context/PetitionContext';
+import CreatePetition from './components/Citizen/CreatePetition';
 
 const style = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap');

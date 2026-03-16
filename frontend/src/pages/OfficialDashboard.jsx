@@ -1,37 +1,58 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { StatsCards } from '../components/OfficialDashboard/StatsCards';
-import { ApprovalTable } from '../components/OfficialDashboard/ApprovalTable';
-import { GrievanceList } from '../components/OfficialDashboard/GrievanceList';
+import { motion, AnimatePresence } from 'framer-motion';
+import { 
+  LayoutDashboard, 
+  UserCheck, 
+  MessageSquareWarning, 
+  LogOut, 
+  Menu, 
+  X, 
+  Bell, 
+  ChevronDown,
+  Search,
+  Settings,
+  BarChart3,
+  TrendingUp // Added for Poll Stats
+} from 'lucide-react';
+
+// Backend logic components
+import { StatsCards } from '../components/Official/StatsCards';
+import { ApprovalTable } from '../components/Official/ApprovalTable';
+import { GrievanceList } from '../components/Official/GrievanceList';
 import { fetchPetitions } from '../api'; 
+
+// Milestone 3 Components
+import PollForm from '../components/Official/Polls/PollForm';
+import PollSentimentChart from '../components/Official/Polls/PollSentimentChart';
 
 const OfficialDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
   const [pendingOfficials, setPendingOfficials] = useState([]);
   const [petitions, setPetitions] = useState([]); 
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
-  // Fetch data based on the active tab
+  // Sample data for Milestone 3 (In production, fetch this from backend)
+  const [polls, setPolls] = useState([
+    { id: 1, title: "Clean Energy Initiative", labels: ["Support", "Oppose", "Neutral"], votes: [120, 45, 30] },
+    { id: 2, title: "Public Transport Expansion", labels: ["Approve", "Disapprove"], votes: [210, 85] }
+  ]);
+
   useEffect(() => {
-    if (activeTab === 'approvals') {
-      fetchPendingOfficials();
-    } else if (activeTab === 'grievances') {
-      loadPetitions();
-    }
+    if (activeTab === 'approvals') fetchPendingOfficials();
+    else if (activeTab === 'grievances') loadPetitions();
   }, [activeTab]);
 
   const fetchPendingOfficials = async () => {
     try {
       const token = localStorage.getItem("token"); 
       const response = await fetch("http://localhost:5000/api/officials/pending", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        headers: { Authorization: `Bearer ${token}` }
       });
       const data = await response.json();
-      if (response.ok) {
-        setPendingOfficials(data);
-      }
+      if (response.ok) setPendingOfficials(data);
     } catch (error) {
       console.error("Failed to fetch officials", error);
     }
@@ -42,7 +63,7 @@ const OfficialDashboard = () => {
       const { data } = await fetchPetitions();
       setPetitions(data);
     } catch (error) {
-      console.error("Failed to fetch petitions", error);
+      console.error("Failed to load petitions", error);
     }
   };
 
@@ -76,89 +97,230 @@ const OfficialDashboard = () => {
     }
   };
 
-  // Sign out function
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/'); 
   };
 
+  const navItems = [
+    { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
+    { id: 'approvals', label: 'Verifications', icon: <UserCheck size={18} /> },
+    { id: 'grievances', label: 'Complaints', icon: <MessageSquareWarning size={18} /> },
+    { id: 'polls', label: 'Public Polling', icon: <BarChart3 size={18} /> },
+  ];
+
   return (
-    <div className="flex min-h-[85vh] w-full max-w-[1400px] mx-auto bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden text-slate-100 font-sans mt-4">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-700 font-sans selection:bg-indigo-100">
       
-      {/* SIDEBAR */}
-      <div className="w-64 bg-black/20 border-r border-white/10 p-6 flex flex-col z-10">
-        <div className="mb-10">
-          <h2 className="text-2xl font-bold tracking-tight text-white flex items-center gap-2">
-            <span>CIV<span className="text-blue-400">IX</span></span>
-            <span className="text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded font-semibold uppercase tracking-wider">
-              GOVT
-            </span>
-          </h2>
-        </div>
-        
-        <nav className="space-y-2 flex-1">
-          <button 
-            onClick={() => setActiveTab('overview')} 
-            className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'overview' ? 'bg-blue-600/80 text-white shadow-lg shadow-blue-500/20' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`}
-          >
-            <i className="bi bi-grid-1x2-fill mr-3 text-lg"></i> Overview
-          </button>
-          <button 
-            onClick={() => setActiveTab('approvals')} 
-            className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'approvals' ? 'bg-blue-600/80 text-white shadow-lg shadow-blue-500/20' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`}
-          >
-            <i className="bi bi-shield-check mr-3 text-lg"></i> Verification
-          </button>
-          <button 
-            onClick={() => setActiveTab('grievances')} 
-            className={`w-full flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'grievances' ? 'bg-blue-600/80 text-white shadow-lg shadow-blue-500/20' : 'text-slate-300 hover:bg-white/10 hover:text-white'}`}
-          >
-            <i className="bi bi-chat-right-dots-fill mr-3 text-lg"></i> Complaints
-          </button>
-        </nav>
+      <nav className="fixed top-0 left-0 w-full z-[1000] bg-white/90 backdrop-blur-md border-b border-slate-100">
+        <div className="max-w-[1500px] mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
+          <div className="flex items-center gap-10">
+            <div 
+              className="text-2xl font-black text-indigo-600 cursor-pointer tracking-tighter flex items-center gap-2" 
+              onClick={() => navigate("/")}
+            >
+              CIVIX
+            </div>
 
-        <button 
-          onClick={handleLogout}
-          className="flex items-center px-4 py-3 text-red-400 hover:bg-red-500/20 rounded-xl text-sm font-medium transition-all mt-auto"
-        >
-          <i className="bi bi-box-arrow-left mr-3 text-lg"></i> Sign Out
-        </button>
-      </div>
-
-      {/* MAIN CONTENT */}
-      <div className="flex-1 overflow-y-auto p-8 md:p-12 custom-scrollbar">
-        <header className="flex justify-between items-center mb-10 border-b border-white/10 pb-6">
-          <div>
-            <h1 className="text-3xl font-bold text-white tracking-tight mb-1">
-              {activeTab === 'overview' ? 'Command Centre' : activeTab === 'approvals' ? 'Official Approvals' : 'Active Grievances'}
-            </h1>
-            <p className="text-blue-200 text-sm font-medium opacity-80">Ministry of Urban Development</p>
+            <div className="hidden lg:flex items-center gap-6">
+              {navItems.map((item) => (
+                <button 
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`flex items-center gap-2.5 text-sm font-bold transition-all px-2 py-1.5 rounded-lg ${
+                    activeTab === item.id 
+                    ? 'text-indigo-600 bg-indigo-50/50' 
+                    : 'text-slate-500 hover:text-indigo-600 hover:bg-slate-50'
+                  }`}
+                >
+                  {item.icon}
+                  {item.label}
+                </button>
+              ))}
+            </div>
           </div>
-          <div className="flex items-center gap-3 bg-black/20 p-2 pr-4 rounded-full border border-white/10 hover:bg-white/5 transition-colors cursor-pointer">
-            <div className="h-10 w-10 bg-gradient-to-tr from-blue-600 to-sky-400 rounded-full flex items-center justify-center font-bold text-white shadow-inner">
-              A
+
+          <div className="flex items-center gap-3 md:gap-5">
+            <button className="p-2.5 text-slate-400 hover:text-indigo-600 bg-slate-50 rounded-xl transition-all relative">
+              <Bell size={20} />
+              <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-indigo-600 border-2 border-white rounded-full"></span>
+            </button>
+
+            <div className="relative">
+              <button 
+                onClick={() => setShowProfileDropdown(!showProfileDropdown)}
+                className="flex items-center gap-3 p-1 bg-white border border-slate-100 rounded-2xl hover:shadow-lg transition-all"
+              >
+                <div className="h-9 w-9 bg-indigo-600 text-white rounded-xl flex items-center justify-center font-bold shadow-lg shadow-indigo-100">
+                  A
+                </div>
+                <ChevronDown size={14} className={`text-slate-400 mr-2 transition-transform ${showProfileDropdown ? 'rotate-180' : ''}`} />
+              </button>
+
+              <AnimatePresence>
+                {showProfileDropdown && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute right-0 mt-3 w-56 bg-white border border-slate-100 rounded-2xl shadow-2xl p-2 z-[1100]"
+                  >
+                    <div className="px-4 py-3 border-b border-slate-50 mb-1">
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Portal Access</p>
+                      <p className="text-xs font-bold text-slate-900 mt-0.5 truncate">administrator@civix.gov</p>
+                    </div>
+                    <button className="w-full flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50 rounded-xl transition-all">
+                      <Settings size={18} className="text-indigo-500" /> Settings
+                    </button>
+                    <button 
+                      onClick={handleLogout}
+                      className="w-full flex items-center gap-3 px-4 py-3 text-sm font-bold text-red-500 hover:bg-red-50 rounded-xl transition-all"
+                    >
+                      <LogOut size={18} /> Sign Out
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            <div className="flex flex-col">
-              <span className="text-sm font-semibold text-white">Government Official</span>
-              <span className="text-xs text-blue-300 opacity-80">Admin Role</span>
+
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
+              className="lg:hidden p-2.5 bg-slate-100 text-slate-600 rounded-xl"
+            >
+              {isMobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
+        </div>
+
+        <AnimatePresence>
+          {isMobileMenuOpen && (
+            <motion.div 
+              initial={{ height: 0, opacity: 0 }}
+              animate={{ height: 'auto', opacity: 1 }}
+              exit={{ height: 0, opacity: 0 }}
+              className="lg:hidden bg-white border-t border-slate-100 overflow-hidden shadow-xl"
+            >
+              <div className="p-4 space-y-2">
+                {navItems.map((item) => (
+                  <button 
+                    key={item.id}
+                    onClick={() => { setActiveTab(item.id); setIsMobileMenuOpen(false); }}
+                    className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl text-sm font-bold transition-all ${
+                      activeTab === item.id ? 'bg-indigo-600 text-white shadow-lg' : 'text-slate-500 hover:bg-slate-50'
+                    }`}
+                  >
+                    {item.icon} {item.label}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </nav>
+
+      <main className="pt-32 pb-20 max-w-[1500px] mx-auto px-6 md:px-12">
+        <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500">
+              <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
+              Live Governance Control
             </div>
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic">
+              {activeTab === 'overview' ? 'Command Centre' : 
+               activeTab === 'approvals' ? 'Identity Verifications' : 
+               activeTab === 'polls' ? 'Community Polling' : 'Active Grievances'}
+            </h1>
+          </div>
+          
+          <div className="relative group sm:hidden">
+             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+             <input type="text" placeholder="Quick search..." className="w-full pl-12 pr-6 py-4 bg-white border border-slate-100 rounded-2xl shadow-sm outline-none focus:border-indigo-200" />
           </div>
         </header>
 
-        {/* CONTENT SWITCHER */}
-        <div className="max-w-5xl mx-auto">
-          {activeTab === 'overview' && <StatsCards />}
-          {activeTab === 'approvals' && (
-            <ApprovalTable 
-              officials={pendingOfficials} 
-              onApprove={handleApprove} 
-              onReject={handleReject} 
-            />
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 15 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          {/* Main Dashboard Stats Section */}
+          {activeTab === 'overview' && (
+            <div className="space-y-8">
+              <StatsCards />
+              
+              {/* Polls Insight Card (New Addition) */}
+              <div className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-6">
+                  <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-3xl flex items-center justify-center shadow-inner">
+                    <BarChart3 size={28} />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-black text-slate-900">Poll Engagement</h3>
+                    <p className="text-sm font-medium text-slate-400">Public participation metrics</p>
+                  </div>
+                </div>
+                
+                <div className="flex gap-12">
+                  <div className="text-center">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Polls</p>
+                    <p className="text-2xl font-black text-indigo-600">{polls.length}</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Votes</p>
+                    <p className="text-2xl font-black text-indigo-600">
+                      {polls.reduce((acc, curr) => acc + curr.votes.reduce((a, b) => a + b, 0), 0)}
+                    </p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Sentiment</p>
+                    <div className="flex items-center gap-1 text-emerald-500 font-bold">
+                      <TrendingUp size={16} />
+                      <span className="text-2xl font-black">84%</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
-          {activeTab === 'grievances' && <GrievanceList grievances={petitions} />}
-        </div>
-      </div>
+          
+          <div className="mt-8 bg-transparent min-h-[500px]">
+            {activeTab === 'approvals' && (
+              <div className="bg-white border border-slate-100 rounded-[2.5rem] shadow-sm shadow-indigo-100/20 overflow-hidden">
+                <ApprovalTable 
+                  officials={pendingOfficials} 
+                  onApprove={handleApprove} 
+                  onReject={handleReject} 
+                />
+              </div>
+            )}
+            
+            {activeTab === 'grievances' && (
+              <div className="bg-white border border-slate-100 rounded-[2.5rem] shadow-sm shadow-indigo-100/20 overflow-hidden p-2">
+                <GrievanceList grievances={petitions} />
+              </div>
+            )}
+
+            {/* MILESTONE 3: POLLS SECTION */}
+            {activeTab === 'polls' && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                {/* Left: Create Poll Tool */}
+                <div className="lg:col-span-1">
+                  <PollForm />
+                </div>
+                
+                {/* Right: Results Dashboard */}
+                <div className="lg:col-span-2 space-y-8">
+                  {polls.map((poll) => (
+                    <PollSentimentChart key={poll.id} chartData={poll} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </motion.div>
+      </main>
     </div>
   );
 };
