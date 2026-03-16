@@ -91,6 +91,47 @@ exports.votePoll = async (req, res) => {
   }
 };
 
+//Update poll (only by creator and Official)
+exports.updatePoll = async (req, res) => {
+  try {
+    const { pollId } = req.params;
+    const { title, description, options, target_location, closes_at } = req.body;
+
+    const poll = await Poll.findById(pollId);
+    if (!poll)
+      return res.status(404).json({ message: "Poll not found" });
+
+    // ✅ Creator OR Official can update
+    if (
+      poll.created_by.toString() !== req.user.id &&
+      req.user.role !== "official"
+    ) {
+      return res.status(403).json({ message: "Not authorized to update poll" });
+    }
+
+    if (title) poll.title = title;
+    if (description) poll.description = description;
+    if (target_location) poll.target_location = target_location;
+    if (closes_at) poll.closes_at = closes_at;
+
+    if (options) {
+      poll.options = options.map(opt => ({
+        text: opt,
+        votes: 0
+      }));
+    }
+
+    await poll.save();
+
+    res.json({
+      message: "Poll updated successfully",
+      poll
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
 
 /* GET RESULTS */
 exports.getResults = async (req, res) => {
@@ -125,6 +166,34 @@ exports.getResults = async (req, res) => {
       closes_at: poll.closes_at,
       totalVotes,
       results
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};
+
+//Delete poll (only by creator and Official)
+exports.deletePoll = async (req, res) => {
+  try {
+    const { pollId } = req.params;
+
+    const poll = await Poll.findById(pollId);
+    if (!poll)
+      return res.status(404).json({ message: "Poll not found" });
+
+    // ✅ Creator OR Official can delete
+    if (
+      poll.created_by.toString() !== req.user.id &&
+      req.user.role !== "official"
+    ) {
+      return res.status(403).json({ message: "Not authorized to delete poll" });
+    }
+
+    await Poll.findByIdAndDelete(pollId);
+
+    res.json({
+      message: "Poll deleted successfully"
     });
 
   } catch (err) {
