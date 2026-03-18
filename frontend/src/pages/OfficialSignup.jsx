@@ -1,9 +1,11 @@
-import { useState, useRef } from "react"; // useRef add kiya
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
-  User, 
+  Building2, 
   Mail, 
   Lock, 
+  X, 
+  User, 
   ShieldCheck, 
   ArrowRight,
   Landmark,
@@ -13,7 +15,6 @@ import {
 
 export default function OfficialSignup() {
   const navigate = useNavigate();
-  const cardRef = useRef(null); // Ref for click-outside logic
 
   const [formData, setFormData] = useState({
     name: "",
@@ -25,19 +26,12 @@ export default function OfficialSignup() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  // Click outside to close logic
-  const handleOverlayClick = (e) => {
-    if (cardRef.current && !cardRef.current.contains(e.target)) {
-      navigate("/");
-    }
-  };
-
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-    setError(""); 
+    setError(""); // Clear error on type
   };
 
   const handleRegister = async (e) => {
@@ -82,36 +76,40 @@ export default function OfficialSignup() {
   };
 
   return (
-    <div 
-      onClick={handleOverlayClick}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-md p-4 font-sans cursor-pointer"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 backdrop-blur-md p-4 font-sans text-slate-900">
       
       {/* Background Decorative Element */}
       <div className="absolute top-[-5%] left-[-5%] w-[450px] h-[450px] bg-slate-800/20 rounded-full blur-[120px] -z-10"></div>
 
-      <div 
-        ref={cardRef}
-        onClick={(e) => e.stopPropagation()}
-        className="relative w-full max-w-[500px] bg-white rounded-3xl shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden animate-in fade-in zoom-in-95 duration-300 cursor-default"
-      >
+      <div className="relative w-full max-w-[500px] bg-white rounded-[2.5rem] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] overflow-hidden animate-in fade-in zoom-in-95 duration-300">
         
-        {/* Header Section - Straight Cut, No Icons */}
-        <div className="bg-slate-900 p-10 text-center relative overflow-hidden">
+        {/* Top-Right Close Button */}
+        <button 
+          onClick={() => navigate("/")} 
+          className="absolute top-6 right-6 p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-900 rounded-full transition-all z-20"
+        >
+          <X size={22} />
+        </button>
+
+        {/* Header Section */}
+        <div className="bg-slate-900 p-8 pb-10 text-center relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-full opacity-5 pointer-events-none">
              <Landmark size={200} className="absolute -bottom-10 -left-10 text-white" />
           </div>
           
-          <h1 className="text-3xl font-bold text-white tracking-tight relative z-10">Official Registration</h1>
-          <p className="text-slate-400 text-xs mt-2 relative z-10 font-bold tracking-widest uppercase opacity-80">Government Personnel Account</p>
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-white/10 backdrop-blur-xl border border-white/20 rounded-2xl mb-4 relative z-10">
+             <UserPlus className="text-white" size={28} />
+          </div>
+          <h1 className="text-2xl font-bold text-white tracking-tight relative z-10">Official Registration</h1>
+          <p className="text-slate-400 text-sm mt-1 relative z-10 font-medium">Create Government Personnel Account</p>
         </div>
 
-        {/* Form Section - Clean Layout */}
-        <div className="p-9 bg-white relative">
+        {/* Form Section */}
+        <div className="p-8 -mt-6 bg-white rounded-t-[2.5rem] relative">
           <form onSubmit={handleRegister} className="space-y-4">
             
             {/* Full Name */}
-            <div className="space-y-1.5 group">
+            <div className="space-y-1 group">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
               <div className="relative">
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors" size={18} />
@@ -128,7 +126,7 @@ export default function OfficialSignup() {
             </div>
 
             {/* Email */}
-            <div className="space-y-1.5 group">
+            <div className="space-y-1 group">
               <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Official Email</label>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors" size={18} />
@@ -146,7 +144,7 @@ export default function OfficialSignup() {
 
             {/* Passwords Grid */}
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1.5 group">
+              <div className="space-y-1 group">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Password</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors" size={18} />
@@ -162,7 +160,7 @@ export default function OfficialSignup() {
                 </div>
               </div>
 
-              <div className="space-y-1.5 group">
+              <div className="space-y-1 group">
                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Confirm</label>
                 <div className="relative">
                   <ShieldCheck className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 group-focus-within:text-slate-900 transition-colors" size={18} />
@@ -180,13 +178,13 @@ export default function OfficialSignup() {
             </div>
 
             {error && (
-              <div className="flex items-center gap-2 text-red-600 text-[12px] font-bold bg-red-50 p-3.5 rounded-xl border border-red-100 animate-shake">
+              <div className="flex items-center gap-2 text-red-600 text-[12px] font-bold bg-red-50 p-3.5 rounded-xl border border-red-100">
                 <ShieldCheck size={14} /> {error}
               </div>
             )}
 
             <button 
-              className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-bold shadow-xl shadow-slate-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-4" 
+              className="w-full py-4 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold shadow-xl shadow-slate-200 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-2" 
               disabled={loading}
             >
               {loading ? "Processing..." : "Register Official Account"}
@@ -195,7 +193,7 @@ export default function OfficialSignup() {
           </form>
 
           {/* Footer Link */}
-          <div className="mt-8 text-center pt-6 border-t border-slate-100">
+          <div className="mt-6 text-center pt-4 border-t border-slate-50">
             <p className="text-sm text-slate-500 font-medium">
               Already have an account?{" "}
               <span 
@@ -210,9 +208,9 @@ export default function OfficialSignup() {
 
         {/* Security Trust Badge */}
         <div className="bg-slate-50 py-3 text-center border-t border-slate-100">
-            <p className="text-[10px] text-slate-400 font-bold flex items-center justify-center gap-1 uppercase tracking-widest">
-              <CheckCircle2 size={12} className="text-slate-900" /> Authorized Government Identity Access
-            </p>
+           <p className="text-[10px] text-slate-400 font-bold flex items-center justify-center gap-1 uppercase tracking-widest">
+             <CheckCircle2 size={12} className="text-slate-900" /> Authorized Government Identity Access
+           </p>
         </div>
       </div>
 
@@ -221,24 +219,18 @@ export default function OfficialSignup() {
           width: 100%;
           padding: 0.85rem 1rem 0.85rem 3.2rem;
           background-color: #f8fafc;
-          border: 1.5px solid #f1f5f9;
-          border-radius: 0.75rem;
+          border: 2px solid #f1f5f9;
+          border-radius: 1.25rem;
           font-size: 0.9rem;
           color: #0f172a;
-          transition: all 0.3s ease;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           outline: none;
         }
         .official-input-modern:focus {
           background-color: #fff;
           border-color: #0f172a;
-          box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.08);
+          box-shadow: 0 10px 20px -5px rgba(15, 23, 42, 0.1);
         }
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-4px); }
-          75% { transform: translateX(4px); }
-        }
-        .animate-shake { animation: shake 0.3s ease-in-out; }
       `}} />
     </div>
   );

@@ -11,9 +11,7 @@ import {
   Bell, 
   ChevronDown,
   Search,
-  Settings,
-  BarChart3,
-  TrendingUp // Added for Poll Stats
+  Settings
 } from 'lucide-react';
 
 // Backend logic components
@@ -21,10 +19,6 @@ import { StatsCards } from '../components/Official/StatsCards';
 import { ApprovalTable } from '../components/Official/ApprovalTable';
 import { GrievanceList } from '../components/Official/GrievanceList';
 import { fetchPetitions } from '../api'; 
-
-// Milestone 3 Components
-import PollForm from '../components/Official/Polls/PollForm';
-import PollSentimentChart from '../components/Official/Polls/PollSentimentChart';
 
 const OfficialDashboard = () => {
   const navigate = useNavigate();
@@ -34,17 +28,12 @@ const OfficialDashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
 
-  // Sample data for Milestone 3 (In production, fetch this from backend)
-  const [polls, setPolls] = useState([
-    { id: 1, title: "Clean Energy Initiative", labels: ["Support", "Oppose", "Neutral"], votes: [120, 45, 30] },
-    { id: 2, title: "Public Transport Expansion", labels: ["Approve", "Disapprove"], votes: [210, 85] }
-  ]);
-
   useEffect(() => {
     if (activeTab === 'approvals') fetchPendingOfficials();
     else if (activeTab === 'grievances') loadPetitions();
   }, [activeTab]);
 
+  // --- API LOGIC FUNCTIONS ---
   const fetchPendingOfficials = async () => {
     try {
       const token = localStorage.getItem("token"); 
@@ -107,22 +96,28 @@ const OfficialDashboard = () => {
     { id: 'overview', label: 'Dashboard', icon: <LayoutDashboard size={18} /> },
     { id: 'approvals', label: 'Verifications', icon: <UserCheck size={18} /> },
     { id: 'grievances', label: 'Complaints', icon: <MessageSquareWarning size={18} /> },
-    { id: 'polls', label: 'Public Polling', icon: <BarChart3 size={18} /> },
   ];
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-700 font-sans selection:bg-indigo-100">
       
+      {/* --- REFINED NAVBAR --- */}
       <nav className="fixed top-0 left-0 w-full z-[1000] bg-white/90 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-[1500px] mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
+          
           <div className="flex items-center gap-10">
+            {/* Logo consistent with Global Header */}
             <div 
               className="text-2xl font-black text-indigo-600 cursor-pointer tracking-tighter flex items-center gap-2" 
               onClick={() => navigate("/")}
             >
               CIVIX
+              <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg border border-indigo-100 uppercase tracking-widest font-black">
+                Official
+              </span>
             </div>
 
+            {/* Desktop Navigation */}
             <div className="hidden lg:flex items-center gap-6">
               {navItems.map((item) => (
                 <button 
@@ -142,11 +137,14 @@ const OfficialDashboard = () => {
           </div>
 
           <div className="flex items-center gap-3 md:gap-5">
+          
+            {/* Notifications */}
             <button className="p-2.5 text-slate-400 hover:text-indigo-600 bg-slate-50 rounded-xl transition-all relative">
               <Bell size={20} />
               <span className="absolute top-2.5 right-2.5 w-2 h-2 bg-indigo-600 border-2 border-white rounded-full"></span>
             </button>
 
+            {/* Profile Dropdown */}
             <div className="relative">
               <button 
                 onClick={() => setShowProfileDropdown(!showProfileDropdown)}
@@ -184,6 +182,7 @@ const OfficialDashboard = () => {
               </AnimatePresence>
             </div>
 
+            {/* Mobile Toggle */}
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
               className="lg:hidden p-2.5 bg-slate-100 text-slate-600 rounded-xl"
@@ -193,6 +192,7 @@ const OfficialDashboard = () => {
           </div>
         </div>
 
+        {/* --- MOBILE NAV MENU --- */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div 
@@ -219,6 +219,7 @@ const OfficialDashboard = () => {
         </AnimatePresence>
       </nav>
 
+      {/* --- MAIN CONTENT --- */}
       <main className="pt-32 pb-20 max-w-[1500px] mx-auto px-6 md:px-12">
         <header className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div className="space-y-2">
@@ -226,14 +227,12 @@ const OfficialDashboard = () => {
               <span className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
               Live Governance Control
             </div>
-            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter uppercase italic">
-              {activeTab === 'overview' ? 'Command Centre' : 
-               activeTab === 'approvals' ? 'Identity Verifications' : 
-               activeTab === 'polls' ? 'Community Polling' : 'Active Grievances'}
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tighter">
+              {activeTab === 'overview' ? 'Command Centre' : activeTab === 'approvals' ? 'Identity Verifications' : 'Active Grievances'}
             </h1>
           </div>
           
-          <div className="relative group sm:hidden">
+          <div className="relative group sm:hidden"> {/* Search for mobile header if needed */}
              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
              <input type="text" placeholder="Quick search..." className="w-full pl-12 pr-6 py-4 bg-white border border-slate-100 rounded-2xl shadow-sm outline-none focus:border-indigo-200" />
           </div>
@@ -245,79 +244,23 @@ const OfficialDashboard = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          {/* Main Dashboard Stats Section */}
-          {activeTab === 'overview' && (
-            <div className="space-y-8">
-              <StatsCards />
-              
-              {/* Polls Insight Card (New Addition) */}
-              <div className="bg-white border border-slate-100 rounded-[2.5rem] p-8 shadow-sm flex flex-col md:flex-row items-center justify-between gap-6">
-                <div className="flex items-center gap-6">
-                  <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-3xl flex items-center justify-center shadow-inner">
-                    <BarChart3 size={28} />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-black text-slate-900">Poll Engagement</h3>
-                    <p className="text-sm font-medium text-slate-400">Public participation metrics</p>
-                  </div>
-                </div>
-                
-                <div className="flex gap-12">
-                  <div className="text-center">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Active Polls</p>
-                    <p className="text-2xl font-black text-indigo-600">{polls.length}</p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Votes</p>
-                    <p className="text-2xl font-black text-indigo-600">
-                      {polls.reduce((acc, curr) => acc + curr.votes.reduce((a, b) => a + b, 0), 0)}
-                    </p>
-                  </div>
-                  <div className="text-center">
-                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Sentiment</p>
-                    <div className="flex items-center gap-1 text-emerald-500 font-bold">
-                      <TrendingUp size={16} />
-                      <span className="text-2xl font-black">84%</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {activeTab === 'overview' && <StatsCards />}
           
-          <div className="mt-8 bg-transparent min-h-[500px]">
+          {/* Content Container */}
+          <div className="mt-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm shadow-indigo-100/20 overflow-hidden min-h-[500px]">
             {activeTab === 'approvals' && (
-              <div className="bg-white border border-slate-100 rounded-[2.5rem] shadow-sm shadow-indigo-100/20 overflow-hidden">
-                <ApprovalTable 
-                  officials={pendingOfficials} 
-                  onApprove={handleApprove} 
-                  onReject={handleReject} 
-                />
-              </div>
+              <ApprovalTable 
+                officials={pendingOfficials} 
+                onApprove={handleApprove} 
+                onReject={handleReject} 
+              />
+            )}
+            {activeTab === 'grievances' && (
+               <div className="p-2">
+                 <GrievanceList grievances={petitions} />
+               </div>
             )}
             
-            {activeTab === 'grievances' && (
-              <div className="bg-white border border-slate-100 rounded-[2.5rem] shadow-sm shadow-indigo-100/20 overflow-hidden p-2">
-                <GrievanceList grievances={petitions} />
-              </div>
-            )}
-
-            {/* MILESTONE 3: POLLS SECTION */}
-            {activeTab === 'polls' && (
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Left: Create Poll Tool */}
-                <div className="lg:col-span-1">
-                  <PollForm />
-                </div>
-                
-                {/* Right: Results Dashboard */}
-                <div className="lg:col-span-2 space-y-8">
-                  {polls.map((poll) => (
-                    <PollSentimentChart key={poll.id} chartData={poll} />
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </motion.div>
       </main>

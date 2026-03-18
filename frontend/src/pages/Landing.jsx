@@ -1,14 +1,30 @@
+// frontend/src/pages/Landing.jsx
 import React from "react";
 import MainLayout from "../Layout/MainLayout";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useLoader } from "../context/LoaderContext";
 import { 
   ArrowRight, Globe, BarChart3, MessageSquare, 
-  ShieldCheck, Landmark, ArrowUpRight, Check, Sparkles
+  ShieldCheck, Landmark, ArrowUpRight, Sparkles
 } from "lucide-react";
 
 export default function Landing() {
   const navigate = useNavigate();
+  const { showLoader } = useLoader();
+
+  console.log("🏠 Landing page rendered");
+
+  // Reusable navigation function with loader
+  const navigateWithLoader = (path, message) => {
+    console.log(`🚀 Navigating to ${path} with message: ${message}`);
+    showLoader(message);
+    
+    setTimeout(() => {
+      console.log(`➡️ Now navigating to ${path}`);
+      navigate(path);
+    }, 300);
+  };
 
   const fadeIn = {
     initial: { opacity: 0, y: 20 },
@@ -20,32 +36,28 @@ export default function Landing() {
     <MainLayout>
       <div className="bg-[#FCFDFF] text-slate-900 selection:bg-indigo-100 selection:text-indigo-700 overflow-x-hidden font-sans">
         
-        {/* --- 1. HERO SECTION (WITH IMAGE BACKGROUND) --- */}
+        {/* Hero Section */}
         <section id="home" className="relative min-h-[100vh] flex flex-col items-center justify-center px-6 md:px-16 overflow-hidden">
           
-          {/* Background Image Wrapper */}
           <div className="absolute inset-0 z-0">
             <img 
               src="https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&q=80&w=1920" 
               alt="City Background" 
               className="w-full h-full object-cover"
             />
-            {/* Multi-layered Overlay: Slate for depth, Indigo for branding */}
             <div className="absolute inset-0 bg-slate-950/70 backdrop-blur-[2px]"></div>
             <div className="absolute inset-0 bg-gradient-to-b from-indigo-600/20 via-transparent to-slate-950/90"></div>
           </div>
           
           <motion.div {...fadeIn} className="max-w-4xl text-center relative z-20 pt-20">
-            {/* Pill Badge */}
             <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 border border-white/20 backdrop-blur-md text-white/90 text-[11px] font-black uppercase tracking-[0.2em] mb-8 shadow-2xl">
               <Sparkles className="w-3 h-3 text-indigo-400" />
               Direct Democracy 2.0
             </div>
             
-            {/* Balanced Typography - Changed to White for visibility */}
             <h1 className="text-5xl md:text-8xl font-black tracking-tighter text-white leading-[1.1] mb-8">
               Your voice, <br />
-              <span className="text-indigo-400 font-serif italic font-normal">Your nation.</span>
+              <span className="text-indigo-400 font-serif italic font-normal">digitally amplified.</span>
             </h1>
 
             <p className="text-lg md:text-xl text-slate-200 max-w-2xl mx-auto leading-relaxed font-medium mb-10 opacity-90">
@@ -53,8 +65,9 @@ export default function Landing() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
+              {/* Get Started Button */}
               <button
-                onClick={() => navigate("/auth")}
+                onClick={() => navigateWithLoader("/auth", "Loading authentication...")}
                 className="group px-10 py-5 bg-indigo-600 text-white rounded-[1.8rem] font-black text-xs uppercase tracking-widest transition-all hover:bg-white hover:text-indigo-600 hover:shadow-[0_0_40px_rgba(79,70,229,0.4)] flex items-center gap-3 active:scale-95"
               >
                 Get Started 
@@ -76,11 +89,10 @@ export default function Landing() {
             </div>
           </motion.div>
 
-          {/* Bottom Fade to next section */}
           <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-[#FCFDFF] to-transparent z-10"></div>
         </section>
 
-        {/* --- 2. INTERACTIVE FEATURES --- */}
+        {/* Features Section */}
         <section id="features" className="py-24 px-6 md:px-16 bg-[#FCFDFF] relative z-20">
           <div className="max-w-7xl mx-auto">
             <div className="grid md:grid-cols-3 gap-8">
@@ -106,7 +118,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* --- 3. AUTHORITY SECTION --- */}
+        {/* Authority Section */}
         <section className="py-20 px-6 md:px-16">
           <div className="max-w-7xl mx-auto overflow-hidden">
             <div className="bg-slate-950 rounded-[3rem] p-10 md:p-20 flex flex-col lg:flex-row items-center justify-between gap-12 relative border border-white/5 shadow-2xl">
@@ -124,8 +136,9 @@ export default function Landing() {
                   Join hundreds of verified departments already using CIVIX to respond to citizen needs. Secure, data-driven, and highly efficient.
                 </p>
                 <div className="pt-4">
+                  {/* Enter Portal Button */}
                   <button 
-                    onClick={() => navigate("/auth")}
+                    onClick={() => navigateWithLoader("/auth", "Loading official portal...")}
                     className="px-8 py-4 bg-white text-slate-950 rounded-xl font-bold hover:bg-indigo-50 transition-all flex items-center gap-2 group shadow-xl"
                   >
                     Enter Portal <ArrowUpRight className="w-4 h-4 group-hover:rotate-45 transition-transform" />
@@ -157,7 +170,7 @@ export default function Landing() {
           </div>
         </section>
 
-        {/* --- 4. IMPACT SECTION --- */}
+        {/* Impact Section */}
         <section id="stats" className="py-24 px-6 md:px-16">
           <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-16">
             <div className="md:w-1/3">

@@ -37,7 +37,9 @@ export const DashboardNav = ({ user, page, setPage, handleLogout, showToast }) =
             onClick={() => navigate("/")} // Redirects to Landing Page
           >
             <span className="logo">CIVIX</span>
-            
+            <span className="text-[10px] bg-indigo-50 text-indigo-600 px-2.5 py-1 rounded-lg border border-indigo-100 uppercase tracking-widest font-black">
+              Citizen
+            </span>
           </div>
 
           {/* --- 2. DESKTOP NAVIGATION --- */}

@@ -1,28 +1,74 @@
-import React, { createContext, useContext, useState } from 'react';
+// frontend/src/context/LoaderContext.js
+import React, { createContext, useState, useContext, useRef } from 'react';
 
 const LoaderContext = createContext();
 
+export const useLoader = () => {
+  const context = useContext(LoaderContext);
+  if (!context) {
+    throw new Error('useLoader must be used within a LoaderProvider');
+  }
+  return context;
+};
+
 export const LoaderProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState('Loading...');
+  const timerRef = useRef(null);
+
+  const showLoader = (message = 'Loading...') => {
+    console.log('🔵 Show Loader:', message);
+    
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+    
+    setLoadingMessage(message);
+    setLoading(true);
+  };
+
+  const hideLoader = () => {
+    console.log('🟢 Hide Loader');
+    setLoading(false);
+    setLoadingMessage('Loading...');
+    
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
+  React.useEffect(() => {
+    if (loading) {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+      }
+      
+      timerRef.current = setTimeout(() => {
+        console.log('⚠️ Auto-hiding loader after 5 seconds');
+        setLoading(false);
+        setLoadingMessage('Loading...');
+        timerRef.current = null;
+      }, 5000);
+    }
+    
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current);
+        timerRef.current = null;
+      }
+    };
+  }, [loading]);
 
   return (
-    <LoaderContext.Provider value={{ setLoading }}>
-      {loading && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/70 backdrop-blur-sm">
-          <div className="flex flex-col items-center gap-4">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600"></div>
-            <p className="text-sm font-bold text-indigo-600 animate-pulse uppercase tracking-widest">
-              Processing...
-            </p>
-          </div>
-        </div>
-      )}
+    <LoaderContext.Provider value={{
+      loading,
+      loadingMessage,
+      showLoader,
+      hideLoader
+    }}>
       {children}
     </LoaderContext.Provider>
   );
 };
-
-export const useLoader = () => useContext(LoaderContext);
-
-// Is line ko add karne se App.js ka error chala jayega agar bina {} ke import karoge
-export default LoaderProvider;

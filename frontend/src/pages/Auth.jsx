@@ -1,5 +1,7 @@
+// frontend/src/pages/Auth.jsx
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import { useLoader } from "../context/LoaderContext";
 import { 
   User, 
   ShieldCheck, 
@@ -11,6 +13,7 @@ import {
 
 export default function Auth() {
   const navigate = useNavigate();
+  const { hideLoader } = useLoader();
 
   // Animation Variants
   const containerVariants = {
@@ -28,6 +31,27 @@ export default function Auth() {
     visible: { opacity: 1, x: 0 }
   };
 
+  const handleCitizenClick = () => {
+    console.log("Citizen option clicked");
+    // Hide loader before navigating
+    hideLoader();
+    navigate("/citizen-login");
+  };
+
+  const handleOfficialClick = () => {
+    console.log("Official option clicked");
+    // Hide loader before navigating
+    hideLoader();
+    navigate("/official-login");
+  };
+
+  const handleClose = () => {
+    console.log("Close button clicked");
+    // Hide loader before navigating
+    hideLoader();
+    navigate("/");
+  };
+
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/60 backdrop-blur-xl p-4 font-sans overflow-y-auto">
       
@@ -42,16 +66,16 @@ export default function Auth() {
         className="relative w-full max-w-[480px] bg-white rounded-[3rem] shadow-[0_40px_100px_-20px_rgba(0,0,0,0.4)] overflow-hidden my-auto border border-white/20"
       >
         
-        {/* Close Button - Premium Glass Style */}
+        {/* Close Button */}
         <button 
-          onClick={() => navigate("/")} 
+          onClick={handleClose}
           className="absolute top-6 right-6 p-2.5 text-slate-400 hover:bg-slate-100 hover:text-slate-900 rounded-full transition-all z-20 active:scale-90 border border-transparent hover:border-slate-200"
         >
           <X size={20} />
         </button>
 
         <div className="p-8 sm:p-12">
-          {/* Header - Minimalist & Sharp */}
+          {/* Header */}
           <div className="mb-10 text-left">
             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-100 text-indigo-600 text-[10px] font-bold uppercase tracking-[0.2em] mb-4">
               <Sparkles size={12} />
@@ -65,13 +89,13 @@ export default function Auth() {
             </p>
           </div>
 
-          {/* Role Selection - Bento Style Stack */}
+          {/* Role Selection */}
           <div className="space-y-4">
             
             {/* Citizen Option */}
             <motion.div 
               variants={itemVariants}
-              onClick={() => navigate("/citizen-login")}
+              onClick={handleCitizenClick}
               className="group relative p-6 bg-slate-50 hover:bg-white border border-slate-100 hover:border-indigo-600 hover:shadow-[0_20px_40px_-15px_rgba(79,70,229,0.15)] rounded-[2rem] transition-all duration-500 cursor-pointer active:scale-[0.98]"
             >
               <div className="flex items-center justify-between">
@@ -95,7 +119,7 @@ export default function Auth() {
             {/* Official Option */}
             <motion.div 
               variants={itemVariants}
-              onClick={() => navigate("/official-login")}
+              onClick={handleOfficialClick}
               className="group relative p-6 bg-slate-50 hover:bg-white border border-slate-100 hover:border-slate-950 hover:shadow-[0_20px_40px_-15px_rgba(0,0,0,0.1)] rounded-[2rem] transition-all duration-500 cursor-pointer active:scale-[0.98]"
             >
               <div className="flex items-center justify-between">
@@ -118,7 +142,7 @@ export default function Auth() {
 
           </div>
 
-          {/* Footer - Secure & Trusted */}
+          {/* Footer */}
           <div className="mt-12 pt-8 border-t border-slate-50 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="p-1.5 bg-green-50 rounded-lg">
