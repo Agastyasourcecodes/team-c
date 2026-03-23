@@ -227,7 +227,32 @@ export const HomeView = ({
           ))}
         </div>
 
-        {/* Featured Engagement & Polls Section */}
+        {<div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
+             {polls?.slice(0, 2).map(p => {
+               // Calculate real total votes from the DB options array
+               const totalVotes = p.options?.reduce((sum, opt) => sum + opt.votes, 0) || 0;
+               return (
+               <div key={p._id} className="p-6 bg-white/5 rounded-[2rem] border border-white/10 hover:border-indigo-500/50 hover:bg-white/10 transition-all group">
+                  <h4 className="text-sm font-bold mb-4 group-hover:text-indigo-400 transition-colors">{p.title}</h4>
+                  <div className="flex justify-between items-center">
+                    <div className="flex gap-4">
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <Users size={10} /> {totalVotes} Votes
+                      </span>
+                      <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-1.5">
+                        <MapPin size={10} /> {p.target_location || "General"}
+                      </span>
+                    </div>
+                    <span 
+                      onClick={() => setPage("Polls")} 
+                      className="text-[10px] font-black text-indigo-400 hover:text-white uppercase cursor-pointer"
+                    >
+                      Vote
+                    </span>
+                  </div>
+               </div>
+             )})}
+          </div>}
         <section className="bg-slate-900 p-10 rounded-[3rem] text-white relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-full opacity-10 pointer-events-none">
              <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500 rounded-full blur-3xl -mr-20 -mt-20" />

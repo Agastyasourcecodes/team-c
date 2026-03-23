@@ -1,40 +1,55 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Send, X, MessageSquare, Trash2 } from 'lucide-react';
+import { Plus, Send, X, MessageSquare, Trash2, Loader2 } from 'lucide-react';
+import { createPoll } from '../../services/pollService'; // Import the API service
 
 const CreatePollModal = ({ isOpen, onClose, onPublish }) => {
   const [question, setQuestion] = useState('');
   const [category, setCategory] = useState('General');
   const [options, setOptions] = useState(['', '']);
+  const [isSubmitting, setIsSubmitting] = useState(false); // Add loading state
 
   const categories = ["Infrastructure", "Education", "Health", "Safety", "Environment"];
 
-  const handlePublish = (e) => {
+  const handlePublish = async (e) => {
     e.preventDefault();
-    if (!question.trim() || options.some(opt => !opt.trim())) {
-      alert("Please add a question and all choices!");
+    
+    // Filter out empty options
+    const validOptions = options.filter(opt => opt.trim() !== '');
+
+    if (!question.trim() || validOptions.length < 2) {
+      alert("Please add a question and at least two choices!");
       return;
     }
 
-    const pollData = {
-      id: Date.now(),
-      title: question,
-      category,
-      options: options,
-      labels: options,
-      votes: options.map(() => Math.floor(Math.random() * 5)), 
-      status: 'Active',
-      voted: false,
-      timestamp: "Just now",
-      location: "Community"
-    };
+    try {
+      setIsSubmitting(true);
 
-    if (onPublish) onPublish(pollData);
-    
-    // Reset form
-    setQuestion('');
-    setOptions(['', '']);
-    setCategory('General');
+      // Match the backend schema expectations exactly
+      const payload = {
+        title: question,
+        description: `Category: ${category}`, // Saving category in description
+        options: validOptions,
+        target_location: "Community", 
+      };
+
+      // Send to backend database
+      await createPoll(payload);
+
+      // Tell parent (Polls.jsx) to refresh the list
+      if (onPublish) onPublish();
+      
+      // Reset form
+      setQuestion('');
+      setOptions(['', '']);
+      setCategory('General');
+
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.message || "Failed to create poll. Make sure you are logged in.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleAddOption = () => {
@@ -58,7 +73,7 @@ const CreatePollModal = ({ isOpen, onClose, onPublish }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={onClose}
+            onClick={!isSubmitting ? onClose : undefined}
             className="fixed inset-0 bg-black/30 backdrop-blur-sm z-40"
           />
           
@@ -72,7 +87,7 @@ const CreatePollModal = ({ isOpen, onClose, onPublish }) => {
             <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
               
               {/* Header */}
-              <div className="sticky top-0 bg-white border-b border-slate-100 p-8 flex items-center justify-between">
+              <div className="sticky top-0 bg-white border-b border-slate-100 p-8 flex items-center justify-between z-10">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200">
                     <MessageSquare className="text-white" size={20} />
@@ -84,7 +99,8 @@ const CreatePollModal = ({ isOpen, onClose, onPublish }) => {
                 </div>
                 <button
                   onClick={onClose}
-                  className="p-2 hover:bg-slate-100 rounded-xl transition-colors"
+                  disabled={isSubmitting}
+                  className="p-2 hover:bg-slate-100 rounded-xl transition-colors disabled:opacity-50"
                 >
                   <X size={20} className="text-slate-500" />
                 </button>
@@ -133,7 +149,7 @@ const CreatePollModal = ({ isOpen, onClose, onPublish }) => {
                     <button
                       type="button"
                       onClick={handleAddOption}
-                      disabled={options.length >= 5}
+                      disabled={options.length >= 5 || isSubmitting}
                       className="flex items-center gap-2 px-3 py-1 bg-indigo-50 text-indigo-600 text-[9px] font-black rounded-lg hover:bg-indigo-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       <Plus size={14} /> Add Option
@@ -163,7 +179,8 @@ const CreatePollModal = ({ isOpen, onClose, onPublish }) => {
                           <button 
                             type="button" 
                             onClick={() => handleRemoveOption(i)}
-                            className="p-2 hover:bg-red-50 rounded-lg transition-colors text-slate-400 hover:text-red-500"
+                            disabled={isSubmitting}
+                            className="p-2 hover:bg-red-50 rounded-lg transition-colors text-slate-400 hover:text-red-500 disabled:opacity-50"
                           >
                             <Trash2 size={16} />
                           </button>
@@ -182,15 +199,21 @@ const CreatePollModal = ({ isOpen, onClose, onPublish }) => {
                   <button
                     type="button"
                     onClick={onClose}
-                    className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-colors"
+                    disabled={isSubmitting}
+                    className="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-colors disabled:opacity-50"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-black hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-200"
+                    disabled={isSubmitting}
+                    className="flex-1 py-3 rounded-xl bg-indigo-600 text-white font-black hover:bg-indigo-700 transition-colors flex items-center justify-center gap-2 shadow-lg shadow-indigo-200 disabled:opacity-70 disabled:cursor-not-allowed"
                   >
-                    <Send size={16} /> Publish Poll
+                    {isSubmitting ? (
+                      <><Loader2 size={16} className="animate-spin" /> Publishing...</>
+                    ) : (
+                      <><Send size={16} /> Publish Poll</>
+                    )}
                   </button>
                 </div>
               </form>

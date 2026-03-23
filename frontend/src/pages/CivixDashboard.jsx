@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { usePetitions } from '../context/PetitionContext';
+import { getActivePolls } from '../services/pollService'; // Import the service
 
 // Modular Components
 import { DashboardNav } from "../components/Citizen/DashboardNav";
@@ -22,6 +23,7 @@ export default function CivixDashboard() {
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [editingPetition, setEditingPetition] = useState(null);
     const [user, setUser] = useState(null);
+    const [polls, setPolls] = useState([]); // REAL POLLS STATE
 
     // Filter States
     const [petitionFilter, setPetitionFilter] = useState("All Petitions");
@@ -30,6 +32,16 @@ export default function CivixDashboard() {
     const showToast = useCallback((msg) => {
         setToast(msg);
         setTimeout(() => setToast(null), 3000);
+    }, []);
+
+    // FETCH REAL POLLS FROM BACKEND
+    const fetchPolls = useCallback(async () => {
+        try {
+            const response = await getActivePolls();
+            setPolls(response.data);
+        } catch (error) {
+            console.error("Failed to load polls:", error);
+        }
     }, []);
 
     useEffect(() => {
@@ -43,20 +55,13 @@ export default function CivixDashboard() {
 
         if (storedUser) setUser(JSON.parse(storedUser));
         fetchPetitions();
-    }, [navigate]);
+        fetchPolls(); // Call fetch on load
+    }, [navigate, fetchPetitions, fetchPolls]);
 
-    // Mock Polls Logic
-    const polls = [
-        { id: 1, title: "Should the city allocate funds for parks?", location: "Citywide", votes: "3,421", ends: "March 20, 2026", status: "Active", voted: false },
-        { id: 2, title: "Downtown parking management", location: "Downtown", votes: "1,876", ends: "March 18, 2026", status: "Active", voted: true },
-        { id: 3, title: "Public Wi-Fi expansion in Market area", location: "Market Dist", votes: "945", ends: "Jan 10, 2026", status: "Closed", voted: true },
-    ];
-
+    // Filter the real polls
     const filteredPolls = polls.filter(p => {
-        if (pollTab === "Active") return p.status === "Active";
-        if (pollTab === "Voted") return p.voted;
-        if (pollTab === "Closed") return p.status === "Closed";
-        if (pollTab === "My Polls") return p.id === 2; 
+        if (pollTab === "Active") return p.status !== "closed";
+        if (pollTab === "Closed") return p.status === "closed";
         return true;
     });
 
@@ -65,36 +70,26 @@ export default function CivixDashboard() {
         navigate('/');
     };
 
-    // --- CRITICAL FIX: Filtering Logic for PetitionList ---
     const getFilteredPetitions = () => {
         const currentUserId = user?._id?.toString() || user?.id?.toString();
         
         return (petitions || []).filter(p => {
             if (petitionFilter === "All Petitions") return true;
-            
             if (petitionFilter === "My Petitions") {
                 const creatorId = (p.creator?._id || p.creator)?.toString();
                 return creatorId === currentUserId;
             }
-            
             if (petitionFilter === "Signed by Me") {
                 const voterList = p.voters || [];
                 return voterList.some(v => (v._id || v).toString() === currentUserId);
             }
-            
             return true;
         });
     };
 
     return (
         <div className="min-h-screen bg-[#F1F5F9] bg-[radial-gradient(at_top_right,_#EEF2FF,_#F1F5F9)] text-slate-900 font-sans selection:bg-indigo-100 selection:text-indigo-600">
-            <DashboardNav
-                user={user}
-                page={page}
-                setPage={setPage}
-                handleLogout={handleLogout}
-                showToast={showToast}
-            />
+            <DashboardNav user={user} page={page} setPage={setPage} handleLogout={handleLogout} showToast={showToast} />
 
             <main className="pt-28 pb-20 px-4 md:px-10 max-w-[1500px] mx-auto">
                 <AnimatePresence mode="wait">
@@ -109,6 +104,7 @@ export default function CivixDashboard() {
                             <HomeView
                                 user={user}
                                 petitions={petitions}
+                                polls={polls} // Pass real polls
                                 onSign={signExistingPetition}
                                 onToast={showToast}
                                 setPage={setPage}
@@ -119,7 +115,6 @@ export default function CivixDashboard() {
 
                         {page === "Petitions" && (
                             <PetitionList
-                                // Pass the FILTERED list here
                                 petitions={getFilteredPetitions()} 
                                 user={user}
                                 onSign={signExistingPetition}
@@ -137,15 +132,13 @@ export default function CivixDashboard() {
                                 pollTab={pollTab}
                                 setPollTab={setPollTab}
                                 filteredPolls={filteredPolls}
+                                fetchPolls={fetchPolls} // Pass fetch function so Polls can refresh after voting
                                 showToast={showToast}
                             />
                         )}
 
                         {page === "Reports" && (
-                            <ReportsView
-                                petitions={petitions}
-                                user={user}
-                            />
+                            <ReportsView petitions={petitions} user={user} />
                         )}
                     </motion.div>
                 </AnimatePresence>
@@ -153,22 +146,8 @@ export default function CivixDashboard() {
 
             {/* Overlays & Modals */}
             <AnimatePresence>
-                {showCreateModal && (
-                    <CreatePetition
-                        onClose={() => setShowCreateModal(false)}
-                        onToast={showToast}
-                    />
-                )}
-
-                {editingPetition && (
-                    <EditPetitionModal
-                        petition={editingPetition}
-                        onClose={() => setEditingPetition(null)}
-                        onUpdate={editExistingPetition}
-                        onToast={showToast}
-                    />
-                )}
-
+                {showCreateModal && <CreatePetition onClose={() => setShowCreateModal(false)} onToast={showToast} />}
+                {editingPetition && <EditPetitionModal petition={editingPetition} onClose={() => setEditingPetition(null)} onUpdate={editExistingPetition} onToast={showToast} />}
                 {toast && (
                     <motion.div
                         initial={{ y: 50, opacity: 0, x: "-50%" }}
