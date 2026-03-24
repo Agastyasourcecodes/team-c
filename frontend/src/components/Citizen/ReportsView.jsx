@@ -184,6 +184,7 @@ export const ReportsView = ({ petitions = [], polls = [] }) => {
                 outerRadius={90}
                 paddingAngle={8}
                 dataKey="value"
+                isAnimationActive={false}
               >
                 {petitionStatusData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
@@ -225,6 +226,7 @@ export const ReportsView = ({ petitions = [], polls = [] }) => {
                 outerRadius={90}
                 paddingAngle={5}
                 dataKey="value"
+                isAnimationActive={false}
               >
                 {participationData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
