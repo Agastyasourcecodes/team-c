@@ -1,202 +1,136 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from "framer-motion";
-import { Search, Plus, Trash2, Edit3, MapPin, Layers, Fingerprint, Flame } from 'lucide-react';
+// frontend/src/components/Citizen/PetitionList.jsx
+import React from 'react';
+import { motion } from 'framer-motion';
+import { 
+  MapPin, 
+  Clock, 
+  ChevronRight, 
+  PenTool,
+  CheckCircle2
+} from 'lucide-react';
 
-export const PetitionList = ({ 
-    petitions = [], 
-    user, 
-    onSign, 
-    onDelete, 
-    onEdit, 
-    onCreateClick,
-    petitionFilter,
-    setPetitionFilter,
-    onToast 
-}) => {
-    const [searchTerm, setSearchTerm] = useState("");
+// Color map for different statuses to maintain design consistency
+const statusStyles = {
+  active: "bg-blue-50 text-blue-600 border-blue-200",
+  under_review: "bg-amber-50 text-amber-600 border-amber-200",
+  in_progress: "bg-emerald-50 text-emerald-600 border-emerald-200",
+  resolved: "bg-green-50 text-green-600 border-green-200",
+  dismissed: "bg-rose-50 text-rose-600 border-rose-200",
+  closed: "bg-slate-50 text-slate-600 border-slate-200"
+};
 
-    const filteredPetitions = (petitions || []).filter(p => {
-        let matchesFilter = true;
-        const currentUserId = user?._id?.toString() || user?.id?.toString();
+const statusLabels = { 
+  active: "Active", 
+  under_review: "Under Review", 
+  in_progress: "In Progress",
+  resolved: "Resolved",
+  dismissed: "Dismissed",
+  closed: "Closed" 
+};
 
-        if (petitionFilter === "My Petitions") {
-            const creatorId = (p.creator?._id || p.creator)?.toString();
-            matchesFilter = creatorId === currentUserId;
-        } else if (petitionFilter === "Signed by Me") {
-            const voterList = p.voters || [];
-            matchesFilter = voterList.some(v => (v._id || v).toString() === currentUserId);
-        }
-        
-        const matchesSearch = p.title?.toLowerCase().includes(searchTerm.toLowerCase());
-        return matchesFilter && matchesSearch;
-    });
-
-    const handleSignAttempt = (p, hasSigned) => {
-        if (hasSigned) {
-            onToast?.("✨ You've already supported this!");
-        } else {
-            onSign(p._id);
-            onToast?.("✍️ Thank you for your support!");
-        }
-    };
-
+export const PetitionList = ({ petitions, onSignPetition, currentUserId }) => {
+  if (!petitions || petitions.length === 0) {
     return (
-        <div className="space-y-10 pb-20 px-4 lg:px-8 max-w-7xl mx-auto">
-            
-            {/* --- TOP HEADER & SEARCH --- */}
-            <div className="flex flex-col xl:flex-row justify-between items-start xl:items-end gap-8">
-                <div className="px-2">
-        <div className="flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 bg-indigo-600 rounded-full animate-pulse" />
-            <span className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">Public Advocacy Platform</span>
-        </div>
-        <h2 className="text-4xl font-black text-slate-900 tracking-tighter">
-            Community Pulse<span className="text-indigo-600">.</span>
-        </h2>
-        <p className="text-slate-400 text-xs font-bold mt-2 uppercase tracking-widest">
-            A space for every voice, every cause, and every change.
-        </p>
-    </div>
-
-                <div className="flex flex-col sm:flex-row items-center gap-4 w-full xl:w-auto">
-                    <div className="relative w-full sm:w-80 group">
-                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
-                        <input 
-                            className="w-full pl-14 pr-6 py-4 bg-white border border-slate-100 rounded-2xl shadow-sm focus:ring-4 focus:ring-indigo-500/10 transition-all text-sm font-bold outline-none placeholder:text-slate-300"
-                            placeholder="Find a cause to support..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                        />
-                    </div>
-                    <button 
-                        onClick={onCreateClick} 
-                        className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl hover:bg-indigo-600 transition-all shadow-xl shadow-slate-200 font-black text-[10px] uppercase tracking-widest active:scale-95"
-                    >
-                        <Plus size={18}/> Start Your Movement
-                    </button>
-                </div>
-            </div>
-
-            {/* --- FILTER TABS --- */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div className="flex bg-white p-1.5 rounded-[2rem] border border-slate-100 shadow-sm">
-                    {["All Petitions", "My Petitions", "Signed by Me"].map(f => (
-                        <button 
-                            key={f} 
-                            onClick={() => setPetitionFilter(f)} 
-                            className={`px-8 py-3.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all duration-300 ${
-                                petitionFilter === f 
-                                ? "bg-indigo-600 text-white shadow-lg shadow-indigo-100" 
-                                : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"
-                            }`}
-                        >
-                            {f}
-                        </button>
-                    ))}
-                </div>
-                <div className="px-6 py-2.5 bg-indigo-50 text-indigo-600 rounded-full text-[10px] font-black uppercase tracking-widest border border-indigo-100">
-                    {filteredPetitions.length} Local Issues
-                </div>
-            </div>
-
-            {/* --- CARDS GRID --- */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <AnimatePresence mode="popLayout">
-                    {filteredPetitions.map((p, index) => {
-                        const currentUserId = user?._id?.toString() || user?.id?.toString();
-                        const voterArray = p.voters || [];
-                        const hasSigned = voterArray.some(v => (v._id || v).toString() === currentUserId);
-                        const isCreator = (p.creator?._id || p.creator)?.toString() === currentUserId;
-                        const progress = Math.min((p.signatureCount / p.signatureGoal) * 100, 100);
-
-                        return (
-                            <motion.div 
-                                layout 
-                                initial={{ opacity: 0, y: 20 }} 
-                                animate={{ opacity: 1, y: 0 }} 
-                                exit={{ opacity: 0, scale: 0.9 }}
-                                transition={{ duration: 0.4, delay: index * 0.05 }}
-                                whileHover={{ y: -8 }}
-                                key={p._id} 
-                                className="group bg-white p-8 rounded-[2.5rem] border border-slate-100 shadow-sm hover:shadow-2xl hover:shadow-indigo-500/5 transition-all flex flex-col h-full relative"
-                            >
-                                <div className="flex justify-between items-start mb-6">
-                                    <span className="px-4 py-1.5 bg-slate-50 text-slate-600 text-[9px] font-black uppercase tracking-widest rounded-full border border-slate-100">
-                                        {p.category}
-                                    </span>
-                                    
-                                    {isCreator && (
-                                        <div className="flex gap-2">
-                                            <button onClick={() => onEdit(p)} className="p-2.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-xl transition-all"><Edit3 size={14}/></button>
-                                            <button onClick={() => onDelete(p._id)} className="p-2.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-xl transition-all"><Trash2 size={14}/></button>
-                                        </div>
-                                    )}
-                                </div>
-
-                                <h3 className="text-xl font-black text-slate-900 mb-3 group-hover:text-indigo-600 transition-colors line-clamp-2 leading-tight min-h-[3rem]">
-                                    {p.title}
-                                </h3>
-                                <p className="text-sm text-slate-400 font-medium leading-relaxed line-clamp-3 mb-8 flex-grow">
-                                    {p.description}
-                                </p>
-                                
-                                <div className="pt-6 border-t border-slate-50 space-y-5">
-                                    <div className="space-y-3">
-                                        <div className="flex justify-between items-end">
-                                            <div className="flex items-center gap-1.5 text-[10px] font-black text-slate-700 uppercase tracking-widest">
-                                                <Flame size={14} className={progress > 70 ? "text-orange-500" : "text-indigo-500"} /> 
-                                                {p.signatureCount} / {p.signatureGoal} Support
-                                            </div>
-                                            <div className="flex items-center gap-1 text-[9px] text-slate-400 font-bold uppercase tracking-tight">
-                                                <MapPin size={10} /> {p.location || "Local Area"}
-                                            </div>
-                                        </div>
-                                        <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                                            <motion.div 
-                                                initial={{ width: 0 }}
-                                                animate={{ width: `${progress}%` }}
-                                                className={`h-full rounded-full ${progress > 70 ? 'bg-orange-500' : 'bg-indigo-600'}`}
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <button 
-                                        onClick={() => handleSignAttempt(p, hasSigned)}
-                                        className={`w-full py-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 active:scale-95 ${
-                                            hasSigned 
-                                            ? "bg-emerald-50 text-emerald-600 border border-emerald-100 cursor-default" 
-                                            : "bg-indigo-600 text-white hover:bg-slate-900 shadow-md shadow-indigo-100"
-                                        }`}
-                                    >
-                                        {hasSigned ? (
-                                            <>✓ Already Supported</>
-                                        ) : (
-                                            <>
-                                                <Fingerprint size={16} /> Support Now
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            </motion.div>
-                        );
-                    })}
-                </AnimatePresence>
-            </div>
-
-            {/* --- EMPTY STATE --- */}
-            {filteredPetitions.length === 0 && (
-                <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="py-24 text-center bg-white rounded-[3rem] border border-slate-100 shadow-sm flex flex-col items-center"
-                >
-                    <div className="w-20 h-20 bg-slate-50 rounded-3xl flex items-center justify-center mb-6">
-                        <Layers className="text-slate-200" size={40} />
-                    </div>
-                    <h3 className="text-slate-900 font-black uppercase tracking-widest text-xs">Nothing here yet</h3>
-                    <p className="text-slate-400 text-[10px] mt-2 font-bold uppercase tracking-widest">Be the first one to start a movement!</p>
-                </motion.div>
-            )}
-        </div>
+      <div className="text-center py-20 text-slate-500 font-medium">
+        No petitions found. Be the first to start a change!
+      </div>
     );
+  }
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-1">
+      {petitions.map((p) => {
+        // Calculate progress percentage
+        const progress = Math.min((p.signatureCount / p.signatureGoal) * 100, 100);
+        
+        // Determine if the current user has already signed (Assuming your API returns a list of signers or a boolean)
+        // If your backend doesn't return this yet, you can rely on the API throwing a 400 "Already signed" error
+        const hasSigned = p.signers?.includes(currentUserId); 
+        
+        // Ensure status has a fallback
+        const currentStatus = p.status || "active";
+
+        return (
+          <motion.div 
+            key={p._id}
+            whileHover={{ y: -5 }}
+            className="bg-white/80 backdrop-blur-md p-6 rounded-[2rem] border border-white shadow-xl shadow-indigo-100/10 relative group flex flex-col"
+          >
+            <div className="flex items-start justify-between mb-4 gap-2">
+              <span className="text-[9px] font-black bg-slate-900 text-white px-3 py-1.5 rounded-full uppercase tracking-widest shrink-0">
+                {p.category}
+              </span>
+              
+              {/* NEW: Citizen Status Badge */}
+              <div className={`text-[9px] font-bold px-3 py-1.5 rounded-full border uppercase tracking-wider shrink-0 ${statusStyles[currentStatus]}`}>
+                {statusLabels[currentStatus]}
+              </div>
+            </div>
+
+            <h4 className="text-lg font-black text-slate-900 mb-2 group-hover:text-indigo-600 transition-colors leading-tight">
+              {p.title}
+            </h4>
+            
+            <p className="text-xs text-slate-500 leading-relaxed line-clamp-3 mb-4 font-medium flex-1">
+              "{p.description}"
+            </p>
+
+            <div className="flex items-center gap-4 mb-6 text-[10px] font-bold text-slate-400">
+              <span className="flex items-center gap-1">
+                <MapPin size={12} className="text-indigo-400" /> {p.location}
+              </span>
+              <span className="flex items-center gap-1">
+                <Clock size={12} className="text-indigo-400" /> {new Date(p.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+
+            <div className="space-y-4 pt-5 border-t border-slate-50 mt-auto">
+              <div className="flex justify-between items-end">
+                <span className="text-[10px] font-black text-slate-900 uppercase">
+                  {p.signatureCount} / {p.signatureGoal} Signatures
+                </span>
+                <span className="text-[10px] font-bold text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-lg border border-indigo-100">
+                  {Math.round(progress)}%
+                </span>
+              </div>
+              
+              <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                <motion.div 
+                  initial={{ width: 0 }}
+                  animate={{ width: `${progress}%` }}
+                  className="h-full bg-indigo-600 rounded-full shadow-[0_0_10px_rgba(79,70,229,0.3)]"
+                />
+              </div>
+              
+              {/* Conditional Action Button based on Status */}
+              {currentStatus === "active" ? (
+                <button 
+                  onClick={() => onSignPetition(p._id)}
+                  disabled={hasSigned}
+                  className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
+                    hasSigned 
+                      ? 'bg-emerald-50 text-emerald-600 border border-emerald-200 cursor-not-allowed' 
+                      : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200 active:scale-95'
+                  }`}
+                >
+                  {hasSigned ? (
+                    <><CheckCircle2 size={16} /> Signed</>
+                  ) : (
+                    <><PenTool size={16} /> Sign Petition</>
+                  )}
+                </button>
+              ) : (
+                <button 
+                  disabled
+                  className="w-full py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest bg-slate-50 text-slate-400 border border-slate-100 cursor-not-allowed flex items-center justify-center gap-2"
+                >
+                  Signature Phase Closed
+                </button>
+              )}
+            </div>
+          </motion.div>
+        );
+      })}
+    </div>
+  );
 };

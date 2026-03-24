@@ -1,14 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import API, { updatePetitionStatus } from "./api";
 import "./styles/OfficialPetitions.css";
 
-const mockPetitions = [
-  { id: 1, title: "Improve Public Transportation Infrastructure", desc: "Requesting expansion of metro lines to underserved neighborhoods and increased bus frequency during peak hours to accommodate growing commuter needs.", category: "Infrastructure", location: "Downtown District", status: "active", signatureCount: 1247 },
-  { id: 2, title: "Establish Community Recreation Centers", desc: "Proposal to build modern recreation facilities with sports courts, libraries, and community meeting spaces to promote healthy living and social interaction.", category: "Community", location: "North Ward", status: "under_review", signatureCount: 892 },
-  { id: 3, title: "Install Solar-Powered Street Lighting", desc: "Replace aging streetlights with energy-efficient solar panels to reduce electricity costs and improve road safety at night.", category: "Environment", location: "East District", status: "active", signatureCount: 2103 },
-  { id: 4, title: "Affordable Housing Development Plan", desc: "Proposal to allocate 15 acres of city-owned land for affordable housing units for low-income families.", category: "Housing", location: "South Ward", status: "closed", signatureCount: 4521 },
-];
-
+// Reusing your existing style variable here...
 const style = `
   @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -40,25 +35,61 @@ const style = `
   .petition-list-meta span { display: flex; align-items: center; gap: 4px; }
   .tag { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 20px; }
   .tag-cat { background: #e8edff; color: #223382; }
-  .tag-active { background: #d4f5ec; color: #1a7a65; }
-  .tag-review { background: #fff3d4; color: #b97a00; }
-  .tag-closed { background: #ffe8e8; color: #c0392b; }
+  .tag-active { background: #e0f2fe; color: #0284c7; }
+  .tag-review { background: #fef08a; color: #854d0e; }
+  .tag-progress { background: #d4f5ec; color: #1a7a65; }
+  .tag-resolved { background: #dcfce7; color: #166534; }
+  .tag-dismissed { background: #fce7f3; color: #9d174d; }
+  .tag-closed { background: #fee2e2; color: #991b1b; }
   .status-select { padding: 8px 10px; border-radius: 8px; border: 1.5px solid #e0e4ef; background: #fafbff; font-family: 'DM Sans', sans-serif; font-size: 13px; color: #333; cursor: pointer; outline: none; }
   .petition-actions { display: flex; gap: 8px; flex-shrink: 0; }
 `;
 
 function statusTag(status) {
-  const map = { active: "tag-active", under_review: "tag-review", closed: "tag-closed" };
-  const labels = { active: "Active", under_review: "Under Review", closed: "Closed" };
+  const map = { 
+    active: "tag-active", 
+    under_review: "tag-review", 
+    in_progress: "tag-progress",
+    resolved: "tag-resolved",
+    dismissed: "tag-dismissed",
+    closed: "tag-closed" 
+  };
+  
+  const labels = { 
+    active: "Active", 
+    under_review: "Under Review", 
+    in_progress: "In Progress",
+    resolved: "Resolved",
+    dismissed: "Dismissed",
+    closed: "Closed" 
+  };
+  
   return <span className={`tag ${map[status] || "tag-active"}`}>{labels[status] || status}</span>;
 }
 
 export default function OfficialPetitions() {
   const navigate = useNavigate();
-  const [petitions, setPetitions] = useState(mockPetitions);
+  const [petitions, setPetitions] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filterLocation, setFilterLocation] = useState("All Locations");
   const [filterCategory, setFilterCategory] = useState("All Categories");
   const [filterStatus, setFilterStatus] = useState("All Statuses");
+
+  // Fetch real petitions on mount
+  useEffect(() => {
+    const fetchAllPetitions = async () => {
+      try {
+        const response = await API.get('/petitions');
+        setPetitions(response.data);
+      } catch (error) {
+        console.error("Failed to fetch petitions:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllPetitions();
+  }, []);
 
   const filteredPetitions = petitions.filter(p => {
     if (filterLocation !== "All Locations" && p.location !== filterLocation) return false;
@@ -67,17 +98,22 @@ export default function OfficialPetitions() {
     return true;
   });
 
-  const updateStatus = (id, status) => {
-    setPetitions(prev => prev.map(p => p.id === id ? { ...p, status } : p));
-    const token = localStorage.getItem('token');
-    if (token) {
-      fetch(`/api/petitions/${id}/status`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-        body: JSON.stringify({ status })
-      }).catch(err => console.warn('Failed to sync status with backend', err));
+  const handleUpdateStatus = async (id, newStatus) => {
+    // Optimistic UI update
+    setPetitions(prev => prev.map(p => p._id === id ? { ...p, status: newStatus } : p));
+    
+    try {
+      await updatePetitionStatus(id, newStatus);
+    } catch (err) {
+      console.error('Failed to update status on server', err);
+      // Revert if API fails (optional, but good UX practice)
+      const response = await API.get('/petitions');
+      setPetitions(response.data);
+      alert("Failed to update status. Please try again.");
     }
   };
+
+  if (loading) return <div>Loading petitions...</div>;
 
   return (
     <>
@@ -97,27 +133,26 @@ export default function OfficialPetitions() {
           <div className="petitions-layout">
             <div className="filter-panel">
               <h2>Filter Petitions</h2>
-              <div className="filter-label">Location</div>
-              <select className="filter-select" value={filterLocation} onChange={(e) => setFilterLocation(e.target.value)}>
-                <option>All Locations</option>
-                <option>Downtown District</option>
-                <option>North Ward</option>
-                <option>East District</option>
-                <option>South Ward</option>
-              </select>
+              
               <div className="filter-label">Category</div>
               <select className="filter-select" value={filterCategory} onChange={(e) => setFilterCategory(e.target.value)}>
                 <option>All Categories</option>
-                <option>Infrastructure</option>
-                <option>Community</option>
                 <option>Environment</option>
-                <option>Housing</option>
+                <option>Education</option>
+                <option>Healthcare</option>
+                <option>Infrastructure</option>
+                <option>Women Safety</option>
+                <option>Other</option>
               </select>
+
               <div className="filter-label">Status</div>
               <select className="filter-select" value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
                 <option>All Statuses</option>
                 <option value="active">Active</option>
                 <option value="under_review">Under Review</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+                <option value="dismissed">Dismissed</option>
                 <option value="closed">Closed</option>
               </select>
             </div>
@@ -125,22 +160,30 @@ export default function OfficialPetitions() {
             <div className="petitions-list">
               <h1>Manage Petitions</h1>
               <div className="petitions-count">{filteredPetitions.length} petitions found</div>
+              
               {filteredPetitions.map(p => (
-                <div className="petition-card-list" key={p.id}>
+                <div className="petition-card-list" key={p._id}>
                   <div style={{ flex: 1 }}>
                     <h3>{p.title}</h3>
-                    <p>{p.desc}</p>
+                    <p>{p.description || "No description provided."}</p>
                     <div className="petition-list-meta">
                       <span>Category: <span className="tag tag-cat" style={{ marginLeft: 4 }}>{p.category}</span></span>
                       <span>📍 {p.location}</span>
                       {statusTag(p.status)}
-                      <span>📄 {p.signatureCount} signatures</span>
+                      <span>📄 {p.signatureCount} / {p.signatureGoal} signatures</span>
                     </div>
                   </div>
                   <div className="petition-actions">
-                    <select className="status-select" value={p.status} onChange={(e) => updateStatus(p.id, e.target.value)}>
+                    <select 
+                      className="status-select" 
+                      value={p.status} 
+                      onChange={(e) => handleUpdateStatus(p._id, e.target.value)}
+                    >
                       <option value="active">Active</option>
                       <option value="under_review">Under Review</option>
+                      <option value="in_progress">In Progress</option>
+                      <option value="resolved">Resolved</option>
+                      <option value="dismissed">Dismissed</option>
                       <option value="closed">Closed</option>
                     </select>
                   </div>

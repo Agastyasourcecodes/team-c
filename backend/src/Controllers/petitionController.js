@@ -151,3 +151,35 @@ exports.updatePetition = async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 };
+
+// backend/src/Controllers/petitionController.js (Add this at the bottom)
+
+exports.updatePetitionStatus = async (req, res) => {
+  try {
+    // Security Check: Ensure the user is an official
+    if (req.user.role !== "official") {
+      return res.status(403).json({ message: "Access denied. Only officials can update petition statuses." });
+    }
+
+    const { status } = req.body;
+    const validStatuses = ["active", "under_review", "in_progress", "resolved", "dismissed", "closed"];
+
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({ message: "Invalid status value provided." });
+    }
+
+    const petition = await Petition.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true }
+    );
+
+    if (!petition) {
+      return res.status(404).json({ message: "Petition not found" });
+    }
+
+    res.json({ message: "Petition status updated successfully", petition });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+};

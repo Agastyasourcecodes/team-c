@@ -1,3 +1,4 @@
+// frontend/src/pages/OfficialDashboard.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -56,6 +57,31 @@ const OfficialDashboard = () => {
     }
   };
 
+  // NEW: Handle Status Update
+  const handleUpdateStatus = async (id, newStatus) => {
+    try {
+      const token = localStorage.getItem("token");
+      const response = await fetch(`http://localhost:5000/api/petitions/${id}/status`, {
+        method: "PUT",
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}` 
+        },
+        body: JSON.stringify({ status: newStatus })
+      });
+      
+      if (response.ok) {
+        // Optimistically update the UI
+        setPetitions(prev => prev.map(p => p._id === id ? { ...p, status: newStatus } : p));
+      } else {
+        const errorData = await response.json();
+        alert(`Failed to update status: ${errorData.message}`);
+      }
+    } catch (error) {
+      console.error("Error updating status", error);
+    }
+  };
+
   const handleApprove = async (id) => {
     try {
       const token = localStorage.getItem("token");
@@ -102,6 +128,7 @@ const OfficialDashboard = () => {
     <div className="min-h-screen bg-[#F8FAFC] text-slate-700 font-sans selection:bg-indigo-100">
       
       {/* --- REFINED NAVBAR --- */}
+      {/* ... KEEP YOUR EXISTING NAVBAR EXACTLY THE SAME ... */}
       <nav className="fixed top-0 left-0 w-full z-[1000] bg-white/90 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-[1500px] mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
           
@@ -232,7 +259,7 @@ const OfficialDashboard = () => {
             </h1>
           </div>
           
-          <div className="relative group sm:hidden"> {/* Search for mobile header if needed */}
+          <div className="relative group sm:hidden">
              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
              <input type="text" placeholder="Quick search..." className="w-full pl-12 pr-6 py-4 bg-white border border-slate-100 rounded-2xl shadow-sm outline-none focus:border-indigo-200" />
           </div>
@@ -246,7 +273,6 @@ const OfficialDashboard = () => {
         >
           {activeTab === 'overview' && <StatsCards />}
           
-          {/* Content Container */}
           <div className="mt-8 bg-white border border-slate-100 rounded-[2.5rem] shadow-sm shadow-indigo-100/20 overflow-hidden min-h-[500px]">
             {activeTab === 'approvals' && (
               <ApprovalTable 
@@ -257,7 +283,8 @@ const OfficialDashboard = () => {
             )}
             {activeTab === 'grievances' && (
                <div className="p-2">
-                 <GrievanceList grievances={petitions} />
+                 {/* PASS DOWN THE UPDATER FUNCTION */}
+                 <GrievanceList grievances={petitions} onUpdateStatus={handleUpdateStatus} />
                </div>
             )}
             

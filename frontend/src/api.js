@@ -17,3 +17,4 @@ export const deletePetition = (id) => API.delete(`/petitions/${id}`);
 export const updatePetition = (id, updatedData) => API.put(`/petitions/${id}`, updatedData); // Added update API call
 
 export default API;
+export const updatePetitionStatus = (id, status) => API.put(`/petitions/${id}/status`, { status });
