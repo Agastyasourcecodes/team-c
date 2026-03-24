@@ -137,9 +137,9 @@ export default function CivixDashboard() {
                             />
                         )}
 
-                        {page === "Reports" && (
-                            <ReportsView petitions={petitions} user={user} />
-                        )}
+                       {page === "Reports" && (
+    <ReportsView petitions={petitions} polls={polls} user={user} />
+)}
                     </motion.div>
                 </AnimatePresence>
             </main>

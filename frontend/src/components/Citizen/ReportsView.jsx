@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { 
-  PieChart, Pie, Cell, Tooltip, ResponsiveContainer 
+  PieChart, Pie, Cell, Tooltip 
 } from 'recharts';
 import { 
   Heart, 
@@ -11,16 +11,16 @@ import {
   CheckCircle2,
   TrendingUp 
 } from 'lucide-react';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable'; 
 
-export const ReportsView = ({ petitions }) => {
+export const ReportsView = ({ petitions = [], polls = [] }) => {
   // Logic Calculations
   const totalSignatures = petitions.reduce((acc, p) => acc + (p.signatureCount || 0), 0);
   const myPetitionsCount = petitions.length;
+  const myPollsCount = polls.length;
 
-  // Modern Color Palette
-  const COLORS = ['#6366f1', '#10b981', '#f59e0b', '#f43f5e'];
-
-  // Your Activities Data (Example data matching your old logic)
+  // Your Activities Data
   const petitionStatusData = [
     { name: 'Active', value: 60, color: '#6366f1' },
     { name: 'Under Review', value: 25, color: '#f59e0b' },
@@ -31,6 +31,75 @@ export const ReportsView = ({ petitions }) => {
     { name: 'Petitions', value: 70, color: '#818cf8' },
     { name: 'Polls', value: 30, color: '#c7d2fe' },
   ];
+
+  // PDF Generation Function
+  const generatePDFReport = () => {
+    const doc = new jsPDF();
+    
+    // 1. Header Section
+    doc.setFontSize(22);
+    doc.setTextColor(15, 23, 42); 
+    doc.text('Civix - Full Activity Report', 14, 22);
+    
+    doc.setFontSize(10);
+    doc.setTextColor(100, 116, 139); 
+    doc.text(`Generated on: ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 14, 30);
+
+    // 2. Summary Statistics
+    doc.setFontSize(12);
+    doc.setTextColor(15, 23, 42);
+    doc.text(`Total Petitions: ${myPetitionsCount}`, 14, 45);
+    doc.text(`Total Signatures Gathered: ${totalSignatures}`, 14, 53);
+    doc.text(`Total Polls: ${myPollsCount}`, 14, 61);
+
+    // 3. Petitions Table
+    doc.setFontSize(16);
+    doc.text('Petitions Overview', 14, 75);
+    
+    const petitionData = petitions.map(p => [
+      p.title || 'Untitled Petition', 
+      p.category || 'General', 
+      p.signatureCount || 0, 
+      p.status || 'Active'
+    ]);
+
+    autoTable(doc, {
+      startY: 80,
+      head: [['Title', 'Category', 'Signatures', 'Status']],
+      body: petitionData,
+      theme: 'striped',
+      headStyles: { fillColor: [99, 102, 241] }, 
+      styles: { fontSize: 10, cellPadding: 4 },
+      alternateRowStyles: { fillColor: [248, 250, 252] }
+    });
+
+    // 4. Polls Table
+    const finalY = doc.lastAutoTable.finalY || 80; 
+    
+    doc.setFontSize(16);
+    doc.text('Polls Overview', 14, finalY + 15);
+    
+    const pollData = polls.map(poll => {
+      const totalVotes = poll.options ? poll.options.reduce((sum, opt) => sum + (opt.votes || 0), 0) : 0;
+      return [
+        poll.title || 'Untitled Poll', 
+        totalVotes,
+        poll.status || 'Active'
+      ];
+    });
+
+    autoTable(doc, {
+      startY: finalY + 20,
+      head: [['Poll Title', 'Total Votes', 'Status']],
+      body: pollData,
+      theme: 'striped',
+      headStyles: { fillColor: [16, 185, 129] }, 
+      styles: { fontSize: 10, cellPadding: 4 },
+      alternateRowStyles: { fillColor: [248, 250, 252] }
+    });
+
+    doc.save('Civix_Activity_Report.pdf');
+  };
 
   return (
     <div className="space-y-10 pb-10">
@@ -47,7 +116,7 @@ export const ReportsView = ({ petitions }) => {
         </div>
         
         <button 
-          onClick={() => alert("⬇️ Downloading your summary...")}
+          onClick={generatePDFReport}
           className="flex items-center gap-2 bg-white text-slate-900 border-2 border-slate-100 px-6 py-4 rounded-[20px] font-black text-xs uppercase tracking-widest shadow-sm hover:bg-slate-50 transition-all active:scale-95"
         >
           <Download size={18} className="text-indigo-600" />
@@ -88,8 +157,8 @@ export const ReportsView = ({ petitions }) => {
             <MessageSquare size={24} />
           </div>
           <div>
-            <h4 className="text-4xl font-black text-slate-900 mb-1">12</h4>
-            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Official Replies</p>
+            <h4 className="text-4xl font-black text-slate-900 mb-1">{myPollsCount}</h4>
+            <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Active Polls</p>
           </div>
         </div>
       </div>
@@ -104,27 +173,26 @@ export const ReportsView = ({ petitions }) => {
             Your Petitions Status
           </h3>
           
-          <div className="h-[250px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={petitionStatusData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
-                  paddingAngle={8}
-                  dataKey="value"
-                >
-                  {petitionStatusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 20px rgba(0,0,0,0.05)' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+          <div className="w-full flex justify-center">
+            {/* FIX: Removed ResponsiveContainer, hardcoded dimensions on PieChart directly */}
+            <PieChart width={300} height={250}>
+              <Pie
+                data={petitionStatusData}
+                cx="50%"
+                cy="50%"
+                innerRadius={60}
+                outerRadius={90}
+                paddingAngle={8}
+                dataKey="value"
+              >
+                {petitionStatusData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                ))}
+              </Pie>
+              <Tooltip 
+                contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 20px rgba(0,0,0,0.05)' }}
+              />
+            </PieChart>
           </div>
 
           <div className="grid grid-cols-3 gap-4 mt-6">
@@ -147,26 +215,25 @@ export const ReportsView = ({ petitions }) => {
             How You Participated
           </h3>
           
-          <div className="h-[250px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={participationData}
-                  cx="50%"
-                  cy="50%"
-                  outerRadius={90}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {participationData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
-                  ))}
-                </Pie>
-                <Tooltip 
-                   contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 20px rgba(0,0,0,0.05)' }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+          <div className="w-full flex justify-center">
+            {/* FIX: Removed ResponsiveContainer, hardcoded dimensions on PieChart directly */}
+            <PieChart width={300} height={250}>
+              <Pie
+                data={participationData}
+                cx="50%"
+                cy="50%"
+                outerRadius={90}
+                paddingAngle={5}
+                dataKey="value"
+              >
+                {participationData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={entry.color} stroke="none" />
+                ))}
+              </Pie>
+              <Tooltip 
+                 contentStyle={{ borderRadius: '20px', border: 'none', boxShadow: '0 10px 20px rgba(0,0,0,0.05)' }}
+              />
+            </PieChart>
           </div>
 
           <div className="flex justify-center gap-8 mt-6">
@@ -197,7 +264,6 @@ export const ReportsView = ({ petitions }) => {
             View Badges
           </button>
         </div>
-        {/* Decorative Circles */}
         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full -mr-32 -mt-32 blur-3xl" />
       </div>
 
