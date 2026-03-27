@@ -14,6 +14,8 @@ import OfficialLogin from './pages/OfficialLogin';
 import OfficialSignup from './pages/OfficialSignup';
 import CivixDashboard from './pages/CivixDashboard';
 import OfficialDashboard from './pages/OfficialDashboard';
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 // Note: .jsx extension not needed in imports
 import Dashboard from './Dashboard.jsx';  // 👈 Changed to .jsx
@@ -47,6 +49,8 @@ function App() {
               <Route path="/dashboard" element={<CivixDashboard />} />
               <Route path="/official-dashboard" element={<OfficialDashboard />} />
               <Route path="/official-petitions" element={<OfficialPetitions />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
+<Route path="/reset-password/:token" element={<ResetPassword />} />
             </Routes>
           </PetitionProvider>
         </div>

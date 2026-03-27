@@ -2,6 +2,7 @@
 import { useState } from "react"; // Remove useEffect
 import { useNavigate } from "react-router-dom";
 import { useLoader } from "../context/LoaderContext";
+import { Link } from "react-router-dom";
 import { 
   User, Mail, Lock, X, ArrowRight,
   ShieldCheck, CheckCircle2
@@ -148,6 +149,11 @@ export default function CitizenLogin() {
                 <ShieldCheck size={14} /> {error}
               </div>
             )}
+            <div style={{ textAlign: "right", marginBottom: "15px" }}>
+  <Link to="/forgot-password" style={{ fontSize: "14px", color: "#007bff", textDecoration: "none" }}>
+    Forgot Password?
+  </Link>
+</div>
 
             <button 
               className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-bold shadow-lg shadow-indigo-100 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-2" 

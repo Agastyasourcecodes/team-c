@@ -25,6 +25,13 @@ const userSchema = new mongoose.Schema({
   isVerified: {
     type: Boolean,
     default: false,
+  },
+  // New fields for forgot password functionality
+  resetPasswordToken: {
+    type: String,
+  },
+  resetPasswordExpires: {
+    type: Date,
   }
 }, { timestamps: true });
 
