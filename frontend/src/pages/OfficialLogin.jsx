@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLoader } from "../context/LoaderContext"; // Add this
+import { Link } from "react-router-dom";
 import { 
   Building2, 
   Mail, 
@@ -160,6 +161,11 @@ export default function OfficialLogin() {
                 <ShieldCheck size={14} /> {error}
               </div>
             )}
+            <div style={{ textAlign: "right", marginBottom: "15px" }}>
+  <Link to="/forgot-password" style={{ fontSize: "14px", color: "#007bff", textDecoration: "none" }}>
+    Forgot Password?
+  </Link>
+</div>
 
             <button 
               className="w-full py-3.5 bg-slate-900 hover:bg-slate-800 text-white rounded-2xl font-bold shadow-xl shadow-slate-100 transition-all active:scale-[0.98] flex items-center justify-center gap-2 mt-2" 

@@ -36,32 +36,79 @@ const ForgotPassword = () => {
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2>Forgot Password</h2>
-        <p>Enter your email to receive a password reset link.</p>
+    <div 
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        width: "100vw",
+        height: "100vh",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#f4f7f6", 
+        zIndex: 9999 // Forces it to sit above any existing navbars or footers
+      }}
+    >
+      <div 
+        style={{
+          width: "90%", // Responsive width
+          maxWidth: "400px",
+          padding: "30px",
+          backgroundColor: "#fff",
+          borderRadius: "8px",
+          boxShadow: "0 4px 12px rgba(0, 0, 0, 0.1)",
+          textAlign: "center", 
+        }}
+      >
+        <h2 style={{ marginBottom: "10px", marginTop: "0" }}>Forgot Password</h2>
+        <p style={{ color: "#666", marginBottom: "20px" }}>
+          Enter your email to receive a password reset link.
+        </p>
         
-        {message && <div className="success-message" style={{ color: "green", marginBottom: "10px" }}>{message}</div>}
-        {error && <div className="error-message" style={{ color: "red", marginBottom: "10px" }}>{error}</div>}
+        {message && <div style={{ color: "green", marginBottom: "15px", fontWeight: "bold" }}>{message}</div>}
+        {error && <div style={{ color: "red", marginBottom: "15px", fontWeight: "bold" }}>{error}</div>}
 
-        <form onSubmit={handleSubmit}>
-          <div className="input-group">
-            <label>Email Address</label>
+        <form onSubmit={handleSubmit} style={{ textAlign: "left" }}>
+          <div style={{ marginBottom: "15px" }}>
+            <label style={{ display: "block", marginBottom: "5px", fontWeight: "bold" }}>Email Address</label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
               placeholder="Enter your registered email"
+              style={{
+                width: "100%",
+                padding: "10px",
+                border: "1px solid #ccc",
+                borderRadius: "4px",
+                boxSizing: "border-box" 
+              }}
             />
           </div>
-          <button type="submit" disabled={loading} className="auth-button" style={{ marginTop: "15px" }}>
+          <button 
+            type="submit" 
+            disabled={loading} 
+            style={{ 
+              width: "100%", 
+              padding: "12px", 
+              marginTop: "10px",
+              backgroundColor: "#007bff",
+              color: "#fff",
+              border: "none",
+              borderRadius: "4px",
+              cursor: loading ? "not-allowed" : "pointer",
+              fontWeight: "bold",
+              fontSize: "16px"
+            }}
+          >
             {loading ? "Sending..." : "Send Reset Link"}
           </button>
         </form>
         
-        <div className="auth-links" style={{ marginTop: "15px", textAlign: "center" }}>
-          <Link to="/">Back to Login</Link>
+        <div style={{ marginTop: "20px" }}>
+          <Link to="/" style={{ color: "#007bff", textDecoration: "none", fontWeight: "500" }}>Back to Login</Link>
         </div>
       </div>
     </div>
