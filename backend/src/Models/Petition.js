@@ -1,17 +1,67 @@
-// backend/src/models/Petition.js
-const petitionSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  description: { type: String, required: true },
-  location: { type: String, required: true },
-  signatures: { type: Number, default: 0 },
-  goal: { type: Number, default: 500 },
-  status: { 
-    type: String, 
-    enum: ["pending", "in-progress", "resolved", "rejected"],
-    default: "pending"
+const mongoose = require("mongoose");
+
+const petitionSchema = new mongoose.Schema(
+  {
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: 200,
+    },
+
+    description: {
+      type: String,
+      default: "",
+    },
+
+    category: {
+      type: String,
+      required: true,
+      enum: [
+        "Environment",
+        "Education",
+        "Healthcare",
+        "Infrastructure",
+        "Women Safety",
+        "Other",
+      ],
+    },
+
+    location: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    signatureGoal: {
+      type: Number,
+      required: true,
+      min: 1,
+    },
+
+    signatureCount: {
+      type: Number,
+      default: 0,
+    },
+
+    status: {
+      type: String,
+      enum: ["active", "under_review", "in_progress", "resolved", "dismissed", "closed"],
+      default: "active",
+    },
+    officialResponse: { type: String, default: "" },
+    respondedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    respondedAt: { type: Date },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
   },
-  officialResponse: { type: String, default: "" },
-  respondedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  respondedAt: { type: Date },
-  createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
-}, { timestamps: true });
+  { timestamps: true }
+);
+
+
+module.exports = mongoose.model("Petition", petitionSchema);
