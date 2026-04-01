@@ -55,13 +55,8 @@ const petitionSchema = new mongoose.Schema(
       enum: ["active", "under_review", "in_progress", "resolved", "dismissed", "closed"],
       default: "active",
     },
-    officialResponse: { type: String, default: "" },
-    respondedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    respondedAt: { type: Date },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true }
   },
   { timestamps: true }
 );
-
 
 module.exports = mongoose.model("Petition", petitionSchema);
