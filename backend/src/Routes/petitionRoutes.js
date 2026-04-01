@@ -1,25 +1,33 @@
 // backend/src/Routes/petitionRoutes.js
+
 const express = require("express");
 const router = express.Router();
-const auth = require("../Middleware/authMiddleware");
 
+// ✅ correct import (match name + lowercase path)
+const protect = require("../middleware/authMiddleware");
+
+// ✅ import all controllers (including missing one)
 const {
   createPetition,
   getPetitions,
   signPetition,
-  deletePetition, 
+  deletePetition,
   updatePetition,
-  updatePetitionStatus // Add this new import
+  updatePetitionStatus,
+  respondToPetition
 } = require("../Controllers/petitionController");
 
-router.post("/", auth, createPetition);
-router.get("/", getPetitions);  
-router.post("/:id/sign", auth, signPetition);
-router.delete("/:id", auth, deletePetition); 
-router.put("/:id", auth, updatePetition); 
+// ✅ routes
+router.post("/", protect, createPetition);
+router.get("/", getPetitions);
 
-// New route for officials to change status
-router.put("/:id/status", auth, updatePetitionStatus); 
+router.post("/:id/sign", protect, signPetition);
+router.delete("/:id", protect, deletePetition);
 
+router.put("/:id", protect, updatePetition);
+router.put("/:id/status", protect, updatePetitionStatus);
+
+// ✅ fixed error route
 router.put("/:id/respond", protect, respondToPetition);
+
 module.exports = router;

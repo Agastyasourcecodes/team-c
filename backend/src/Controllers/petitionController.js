@@ -184,7 +184,7 @@ exports.updatePetitionStatus = async (req, res) => {
   }
 };
 
-export const respondToPetition = async (req, res) => {
+exports.respondToPetition = async (req, res) => {
   try {
     const { id } = req.params;
     const { officialResponse, status } = req.body;
