@@ -7,10 +7,11 @@ import {
   ChevronRight, 
   PenTool,
   CheckCircle2,
-  Plus // Added for the create button
+  Plus,
+  Trash2,  // <-- Added Trash icon
+  Edit3    // <-- Added Edit icon
 } from 'lucide-react';
 
-// Color map for different statuses to maintain design consistency
 const statusStyles = {
   active: "bg-blue-50 text-blue-600 border-blue-200",
   under_review: "bg-amber-50 text-amber-600 border-amber-200",
@@ -29,9 +30,45 @@ const statusLabels = {
   closed: "Closed" 
 };
 
-// Added onCreateClick to the props
-export const PetitionList = ({ petitions, onSignPetition, currentUserId, onCreateClick }) => {
+// FIXED: Updated Props to match what CivixDashboard passes
+export const PetitionList = ({ 
+  petitions, 
+  user, 
+  onSign, 
+  onDelete, 
+  onEdit, 
+  onToast, 
+  onCreateClick,
+  petitionFilter,
+  setPetitionFilter
+}) => {
   
+  // Handlers for Toasts & Actions (matching your HomeView logic)
+  const handleSignAction = async (id) => {
+    try {
+      await onSign(id);
+      onToast?.("✍️ Signed successfully!");
+    } catch (err) {
+      onToast?.("❌ Failed to sign");
+    }
+  };
+
+  const handleDeleteAction = async (id) => {
+    if (window.confirm("Are you sure you want to delete this?")) {
+      try {
+        await onDelete(id);
+        onToast?.("🗑️ Petition removed");
+      } catch (err) {
+        onToast?.("❌ Delete failed");
+      }
+    }
+  };
+
+  const handleEditAction = (p) => {
+    onEdit?.(p);
+    onToast?.("✏️ Opening editor...");
+  };
+
   return (
     <div className="space-y-8">
       
@@ -63,14 +100,14 @@ export const PetitionList = ({ petitions, onSignPetition, currentUserId, onCreat
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-1">
           {petitions.map((p) => {
-            // Calculate progress percentage
             const progress = Math.min((p.signatureCount / p.signatureGoal) * 100, 100);
             
-            // Determine if the current user has already signed
-            const hasSigned = p.signers?.includes(currentUserId); 
-            
-            // Ensure status has a fallback
+            // FIXED: Using the passed 'user' object instead of 'currentUserId'
+            const hasSigned = p.voters?.some(v => (v._id || v) === user?._id) || p.signers?.includes(user?._id);
             const currentStatus = p.status || "active";
+            
+            // Determine if the current user is the creator
+            const isCreator = (p.creator?._id || p.creator) === user?._id;
 
             return (
               <motion.div 
@@ -83,9 +120,31 @@ export const PetitionList = ({ petitions, onSignPetition, currentUserId, onCreat
                     {p.category}
                   </span>
                   
-                  {/* Citizen Status Badge */}
-                  <div className={`text-[9px] font-bold px-3 py-1.5 rounded-full border uppercase tracking-wider shrink-0 ${statusStyles[currentStatus]}`}>
-                    {statusLabels[currentStatus]}
+                  <div className="flex gap-2 items-center">
+                    {/* FIXED: Added Edit/Delete Buttons here */}
+                    {isCreator && (
+                      <div className="flex gap-1.5 mr-1">
+                        <button 
+                          onClick={() => handleEditAction(p)} 
+                          className="p-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-lg transition-all"
+                          title="Edit Petition"
+                        >
+                          <Edit3 size={14}/>
+                        </button>
+                        <button 
+                          onClick={() => handleDeleteAction(p._id)} 
+                          className="p-1.5 bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white rounded-lg transition-all"
+                          title="Delete Petition"
+                        >
+                          <Trash2 size={14}/>
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Citizen Status Badge */}
+                    <div className={`text-[9px] font-bold px-3 py-1.5 rounded-full border uppercase tracking-wider shrink-0 ${statusStyles[currentStatus]}`}>
+                      {statusLabels[currentStatus]}
+                    </div>
                   </div>
                 </div>
 
@@ -124,10 +183,9 @@ export const PetitionList = ({ petitions, onSignPetition, currentUserId, onCreat
                     />
                   </div>
                   
-                  {/* Conditional Action Button based on Status */}
                   {currentStatus === "active" ? (
                     <button 
-                      onClick={() => onSignPetition(p._id)}
+                      onClick={() => handleSignAction(p._id)} // FIXED: correctly passing the function wrapper
                       disabled={hasSigned}
                       className={`w-full py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${
                         hasSigned 
