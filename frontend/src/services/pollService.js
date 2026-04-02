@@ -1,7 +1,6 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/polls'; // Update port if necessary
-
+const API_URL = `${process.env.REACT_APP_API_URL || 'http://localhost:5000/api'}/polls`;
 // Helper to attach JWT token for authenticated routes
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');

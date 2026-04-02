@@ -29,9 +29,13 @@ app.use((err, req, res, next) => {
   res.status(400).json({ error: "Invalid JSON format" });
 });
 
+// Set port from environment variable or default to 5000
+const PORT = process.env.PORT || 5000;
+
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log("MongoDB connected");
-    app.listen(5000, () => console.log("Server running on port 5000"));
+    // Start the server using the dynamic port
+    app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch(err => console.log("MongoDB error:", err));
