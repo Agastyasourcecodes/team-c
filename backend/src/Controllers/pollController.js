@@ -1,5 +1,5 @@
-const Poll = require("../models/Poll");
-const Vote = require("../models/Vote");
+const Poll = require("../Models/Poll");
+const Vote = require("../Models/Vote");
 
 /* CREATE POLL */
 exports.createPoll = async (req, res) => {
