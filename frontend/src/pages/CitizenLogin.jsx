@@ -1,5 +1,5 @@
 // frontend/src/pages/CitizenLogin.jsx
-import { useState } from "react"; // Remove useEffect
+import { useState } from "react"; 
 import { useNavigate } from "react-router-dom";
 import { useLoader } from "../context/LoaderContext";
 import { Link } from "react-router-dom";
@@ -36,7 +36,8 @@ export default function CitizenLogin() {
     showLoader("Authenticating your credentials...");
 
     try {
-      const res = await fetch("http://localhost:5000/api/auth/login", {
+      const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+      const res = await fetch(`${API_URL}/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

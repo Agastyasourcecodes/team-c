@@ -5,6 +5,8 @@ import './Auth.css';
 export default function Auth() {
   const navigate = useNavigate();
 
+  const API_URL = process.env.REACT_APP_API_URL; // ✅ FIX
+
   const [isLogin, setIsLogin] = useState(true);
   const [selectedRole, setSelectedRole] = useState(null);
   const [formData, setFormData] = useState({
@@ -31,17 +33,21 @@ export default function Auth() {
     }
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, { // ✅ FIX
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: formData.email, password: formData.password })
       });
+
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to login');
+
       localStorage.setItem('token', data.token);
       localStorage.setItem('user', JSON.stringify(data.user));
+
       if (data.user.role === 'official') navigate('/official-dashboard');
       else navigate('/dashboard');
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -55,9 +61,10 @@ export default function Auth() {
     if (!selectedRole) { setError('Please select a role'); return; }
     if (formData.password !== formData.confirmPassword) { setError('Passwords do not match'); return; }
     if (formData.password.length < 6) { setError('Password must be at least 6 characters'); return; }
+
     setLoading(true);
     try {
-      const response = await fetch('http://localhost:5000/api/auth/register', {
+      const response = await fetch(`${API_URL}/auth/register`, { // ✅ FIX
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -68,10 +75,13 @@ export default function Auth() {
           location: 'Not Specified'
         })
       });
+
       const data = await response.json();
       if (!response.ok) throw new Error(data.message || 'Failed to register');
+
       alert(data.message);
       toggleMode();
+
     } catch (err) {
       setError(err.message);
     } finally {
@@ -92,7 +102,6 @@ export default function Auth() {
         <div className="auth-container">
           <div className={`auth-card${!isLogin ? ' register-card' : ''}`}>
 
-            {/* ── LOGIN ── */}
             {isLogin ? (
               <>
                 <h1 className="auth-title">Welcome Back</h1>
@@ -102,9 +111,12 @@ export default function Auth() {
                   <div className="form-group">
                     <label>Email</label>
                     <input
-                      type="email" name="email"
-                      value={formData.email} onChange={handleInputChange}
-                      placeholder="your@email.com" required
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleInputChange}
+                      placeholder="your@email.com"
+                      required
                     />
                   </div>
 
@@ -116,9 +128,12 @@ export default function Auth() {
                       </button>
                     </div>
                     <input
-                      type="password" name="password"
-                      value={formData.password} onChange={handleInputChange}
-                      placeholder="••••••••" required
+                      type="password"
+                      name="password"
+                      value={formData.password}
+                      onChange={handleInputChange}
+                      placeholder="••••••••"
+                      required
                     />
                   </div>
 
@@ -130,18 +145,17 @@ export default function Auth() {
                 </form>
 
                 <div className="auth-divider"><span>Don't have an account?</span></div>
-                <button className="toggle-button" onClick={toggleMode}>Create an Account</button>
+                <button className="toggle-button" onClick={toggleMode}>
+                  Create an Account
+                </button>
               </>
-
             ) : (
-              /* ── REGISTER ── */
               <>
                 <h1 className="auth-title">Join Our Platform</h1>
                 <p className="auth-subtitle">
                   {!selectedRole ? 'Choose your role' : 'Create your account'}
                 </p>
 
-                {/* Step 1 — Role picker */}
                 {!selectedRole ? (
                   <>
                     <div className="role-cards-row">
@@ -165,11 +179,11 @@ export default function Auth() {
                     </div>
 
                     <div className="auth-divider"><span>Already have an account?</span></div>
-                    <button className="toggle-button" onClick={toggleMode}>Sign In</button>
+                    <button className="toggle-button" onClick={toggleMode}>
+                      Sign In
+                    </button>
                   </>
-
                 ) : (
-                  /* Step 2 — Registration form */
                   <>
                     <form onSubmit={handleRegister} className="auth-form register-form">
                       <div className="selected-role">
@@ -184,36 +198,44 @@ export default function Auth() {
                       <div className="form-group">
                         <label>Full Name</label>
                         <input
-                          type="text" name="fullName"
-                          value={formData.fullName} onChange={handleInputChange}
-                          placeholder="Your full name" required
+                          type="text"
+                          name="fullName"
+                          value={formData.fullName}
+                          onChange={handleInputChange}
+                          required
                         />
                       </div>
 
                       <div className="form-group">
                         <label>Email</label>
                         <input
-                          type="email" name="email"
-                          value={formData.email} onChange={handleInputChange}
-                          placeholder="your@email.com" required
+                          type="email"
+                          name="email"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          required
                         />
                       </div>
 
                       <div className="form-group">
                         <label>Password</label>
                         <input
-                          type="password" name="password"
-                          value={formData.password} onChange={handleInputChange}
-                          placeholder="••••••••" required
+                          type="password"
+                          name="password"
+                          value={formData.password}
+                          onChange={handleInputChange}
+                          required
                         />
                       </div>
 
                       <div className="form-group">
                         <label>Confirm Password</label>
                         <input
-                          type="password" name="confirmPassword"
-                          value={formData.confirmPassword} onChange={handleInputChange}
-                          placeholder="••••••••" required
+                          type="password"
+                          name="confirmPassword"
+                          value={formData.confirmPassword}
+                          onChange={handleInputChange}
+                          required
                         />
                       </div>
 
@@ -225,7 +247,9 @@ export default function Auth() {
                     </form>
 
                     <div className="auth-divider"><span>Already have an account?</span></div>
-                    <button className="toggle-button" onClick={toggleMode}>Sign In</button>
+                    <button className="toggle-button" onClick={toggleMode}>
+                      Sign In
+                    </button>
                   </>
                 )}
               </>
