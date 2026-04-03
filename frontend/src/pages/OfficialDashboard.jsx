@@ -20,6 +20,8 @@ import { ApprovalTable } from '../components/Official/ApprovalTable';
 import { GrievanceList } from '../components/Official/GrievanceList';
 import { fetchPetitions } from '../api'; 
 
+const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 const OfficialDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
@@ -37,7 +39,7 @@ const OfficialDashboard = () => {
   const fetchPendingOfficials = async () => {
     try {
       const token = localStorage.getItem("token"); 
-      const response = await fetch("http://localhost:5000/api/officials/pending", {
+      const response = await fetch(`${API_URL}/officials/pending`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await response.json();
@@ -60,7 +62,7 @@ const OfficialDashboard = () => {
   const handleUpdateStatus = async (id, newStatus) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/api/petitions/${id}/status`, {
+      const response = await fetch(`${API_URL}/petitions/${id}/status`, {
         method: "PUT",
         headers: { 
           "Content-Type": "application/json",
@@ -84,7 +86,7 @@ const OfficialDashboard = () => {
   const handleApprove = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/api/officials/approve/${id}`, {
+      const response = await fetch(`${API_URL}/officials/approve/${id}`, {
         method: "PUT",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -99,7 +101,7 @@ const OfficialDashboard = () => {
   const handleReject = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      const response = await fetch(`http://localhost:5000/api/officials/reject/${id}`, {
+      const response = await fetch(`${API_URL}/officials/reject/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -127,7 +129,6 @@ const OfficialDashboard = () => {
     <div className="min-h-screen bg-[#F8FAFC] text-slate-700 font-sans selection:bg-indigo-100">
       
       {/* --- REFINED NAVBAR --- */}
-      {/* ... KEEP YOUR EXISTING NAVBAR EXACTLY THE SAME ... */}
       <nav className="fixed top-0 left-0 w-full z-[1000] bg-white/90 backdrop-blur-md border-b border-slate-100">
         <div className="max-w-[1500px] mx-auto px-6 md:px-12 h-20 flex items-center justify-between">
           
