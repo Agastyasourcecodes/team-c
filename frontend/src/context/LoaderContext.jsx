@@ -50,7 +50,7 @@ export const LoaderProvider = ({ children }) => {
         setLoading(false);
         setLoadingMessage('Loading...');
         timerRef.current = null;
-      }, 5000);
+      }, 800);
     }
     
     return () => {
