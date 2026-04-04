@@ -7,7 +7,7 @@ This is the fully completed, production-ready repository for the Civix platform.
 
 ## 🌐 Live Application
 
-👉 **[Civix Live App](#)** *(Replace `#` with your actual live URL)*
+👉 **[Civix Live App](https://team-c-three.vercel.app/)** 
 
 ---
 
