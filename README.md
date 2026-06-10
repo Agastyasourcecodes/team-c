@@ -9,6 +9,9 @@ This is the fully completed, production-ready repository for the Civix platform.
 
 👉 **[Civix Live App](https://team-c-three.vercel.app/)** 
 
+<img width="1884" height="3972" alt="team-c-three vercel app_" src="https://github.com/user-attachments/assets/3d3f751b-7282-451a-adbe-db9daf20526f" />
+
+
 ---
 
 ## 📖 Project Statement
